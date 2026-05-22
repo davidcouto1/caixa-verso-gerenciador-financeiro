@@ -1,0 +1,419 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Simulador de Financiamentos",
+		"description": "Collection para testar a API REST de simulação de financiamentos com juros compostos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes",
+						"health"
+					]
+				},
+				"description": "Verifica se a API está funcionando"
+			},
+			"response": []
+		},
+		{
+			"name": "Criar Simulação - Básica",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"simulacao_id\", jsonData.id);",
+							"    pm.test(\"Simulação criada com sucesso\", function () {",
+							"        pm.expect(jsonData.id).to.be.a('number');",
+							"        pm.expect(jsonData.valorInicial).to.eql(1000.00);",
+							"        pm.expect(jsonData.taxaJurosMensal).to.eql(1.5);",
+							"        pm.expect(jsonData.prazoMeses).to.eql(12);",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 1000.00,\n  \"taxaJurosMensal\": 1.5,\n  \"prazoMeses\": 12\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Cria uma simulação básica: R$ 1.000,00 a 1,5% a.m. por 12 meses"
+			},
+			"response": []
+		},
+		{
+			"name": "Criar Simulação - Valor Alto",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 100000.00,\n  \"taxaJurosMensal\": 2.5,\n  \"prazoMeses\": 24\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Cria uma simulação com valor alto: R$ 100.000,00 a 2,5% a.m. por 24 meses"
+			},
+			"response": []
+		},
+		{
+			"name": "Criar Simulação - Longo Prazo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 50000.00,\n  \"taxaJurosMensal\": 1.0,\n  \"prazoMeses\": 120\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Cria uma simulação de longo prazo: R$ 50.000,00 a 1,0% a.m. por 120 meses (10 anos)"
+			},
+			"response": []
+		},
+		{
+			"name": "Criar Simulação - Taxa Baixa",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 5000.00,\n  \"taxaJurosMensal\": 0.5,\n  \"prazoMeses\": 6\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Cria uma simulação com taxa baixa: R$ 5.000,00 a 0,5% a.m. por 6 meses"
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar Simulação por ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.test(\"Simulação encontrada\", function () {",
+							"        pm.expect(jsonData.id).to.be.a('number');",
+							"        pm.expect(jsonData.valorInicial).to.be.a('number');",
+							"        pm.expect(jsonData.valorTotalFinal).to.be.a('number');",
+							"        pm.expect(jsonData.memoriaCalculos).to.be.an('array');",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes/{{simulacao_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes",
+						"{{simulacao_id}}"
+					]
+				},
+				"description": "Busca uma simulação pelo ID (usa variável de ambiente simulacao_id)"
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar Simulação - ID 1",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes",
+						"1"
+					]
+				},
+				"description": "Busca a simulação com ID fixo 1"
+			},
+			"response": []
+		},
+		{
+			"name": "Validação - Valor Inicial Negativo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": -1000.00,\n  \"taxaJurosMensal\": 1.5,\n  \"prazoMeses\": 12\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Testa validação: deve retornar 400 - valor inicial não pode ser negativo"
+			},
+			"response": []
+		},
+		{
+			"name": "Validação - Valor Inicial Zero",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 0,\n  \"taxaJurosMensal\": 1.5,\n  \"prazoMeses\": 12\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Testa validação: deve retornar 400 - valor inicial deve ser maior que zero"
+			},
+			"response": []
+		},
+		{
+			"name": "Validação - Taxa Negativa",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 1000.00,\n  \"taxaJurosMensal\": -1.5,\n  \"prazoMeses\": 12\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Testa validação: deve retornar 400 - taxa de juros não pode ser negativa"
+			},
+			"response": []
+		},
+		{
+			"name": "Validação - Prazo Zero",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 1000.00,\n  \"taxaJurosMensal\": 1.5,\n  \"prazoMeses\": 0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Testa validação: deve retornar 400 - prazo deve ser maior que zero"
+			},
+			"response": []
+		},
+		{
+			"name": "Validação - Prazo Excedido",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"valorInicial\": 1000.00,\n  \"taxaJurosMensal\": 1.5,\n  \"prazoMeses\": 361\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes"
+					]
+				},
+				"description": "Testa validação: deve retornar 400 - prazo máximo é 360 meses"
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar Simulação Inexistente",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/simulacoes/99999",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"simulacoes",
+						"99999"
+					]
+				},
+				"description": "Testa erro: deve retornar 404 - simulação não encontrada"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "simulacao_id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}
