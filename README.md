@@ -24,6 +24,31 @@ API REST para simulação de financiamentos com cálculo de **juros compostos**,
 
 ---
 
+## ⚡ Quick Start - Comandos Essenciais
+
+### 🔧 Compilar o projeto
+```bash
+mvn clean compile
+```
+
+### 🧪 Executar testes e validar cobertura >= 80%
+```bash
+mvn clean test
+```
+
+**📊 Relatório de cobertura:** O relatório HTML será gerado automaticamente em `target/site/jacoco/index.html`
+
+**✅ Validação automática:** O build **falhará** se a cobertura for inferior a 80% (configurado no `pom.xml`)
+
+### 🚀 Executar a aplicação
+```bash
+mvn quarkus:dev
+```
+
+**🌐 Acesse:** http://localhost:8080
+
+---
+
 ## � IMPORTANTE: Execução 100% Nativa (SEM Docker)
 
 **Este projeto foi desenvolvido seguindo rigorosamente a restrição de NÃO USAR Docker ou Docker Compose.**
@@ -107,47 +132,15 @@ mvn -version
 
 ## 📦 Instalação e Execução
 
-### 1. Compilar o projeto
-
-```bash
-mvn clean compile
-```
-
-### 2. Executar a aplicação em modo de desenvolvimento
-
-```bash
-mvn quarkus:dev
-```
-
-A aplicação estará disponível em: **http://localhost:8080**
-
-### 3. Executar os testes e validar cobertura
-
-**Comando para rodar todos os testes e gerar o relatório de cobertura:**
-
-```bash
-mvn clean test
-```
-
-**Verificar cobertura de código (Jacoco):**
-
-O relatório HTML será gerado em:
-```
-target/site/jacoco/index.html
-```
-
-Abra o arquivo no navegador para visualizar a cobertura detalhada.
-
-**Verificar se atingiu 80% de cobertura:**
-
-O Maven falhará automaticamente se a cobertura for inferior a 80% devido à configuração do plugin Jacoco no `pom.xml`.
+**Removida - Ver seção "⚡ Quick Start" no início do documento**
 
 ---
 
 ## � Endpoints
 
 - **POST** `/api/simulacoes` - Cria uma nova simulação
-- **GET** `/api/simulacoes/{id}` - Busca uma simulação por ID- **GET** `/api/simulacoes/health` - Verifica se a API está funcionando
+- **GET** `/api/simulacoes/{id}` - Busca uma simulação por ID
+- **GET** `/api/simulacoes/health` - Verifica se a API está funcionando
 
 ---
 
