@@ -1,0 +1,18 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------< br.com.david.desafio:simulador-financiamentos >------------
+[INFO] Building SimuladorFinanciamentos 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] ------------------------------[ quarkus ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ simulador-financiamentos ---
+[INFO] Deleting C:\Desenvolvimento\projetos\simulador-financiamentos\target
+[INFO] 
+[INFO] --- jacoco:0.8.13:prepare-agent (prepare-agent) @ simulador-financiamentos ---
+[INFO] argLine set to -javaagent:C:\\Users\\David-Programação\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.13\\org.jacoco.agent-0.8.13-runtime.jar=destfile=C:\\Desenvolvimento\\projetos\\simulador-financiamentos\\target\\jacoco.exec,excludes=**/dto/**/*:**/entity/**/*:**/builder/**/*:**/exception/**/*Exception.class:**/config/**/*:**/TestRunnerResource.class:**/JacocoReportResource.class --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-exports=java.base/jdk.internal.module=ALL-UNNAMED
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ simulador-financiamentos ---
+[INFO] Copying 8 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- quarkus:3.35.4:generate-code (default-generate-code) @ simulador-financiamentos ---
+^C

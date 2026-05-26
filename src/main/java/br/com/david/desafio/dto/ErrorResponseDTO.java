@@ -1,6 +1,7 @@
 package br.com.david.desafio.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -10,31 +11,56 @@ import java.util.List;
 /**
  * DTO para padronizar as respostas de erro da API.
  */
-@Schema(description = "Estrutura de resposta de erro")
+@Schema(description = "Estrutura padronizada de resposta de erro da API")
 public class ErrorResponseDTO {
 
     @JsonProperty("timestamp")
-    @Schema(description = "Data e hora do erro")
+    @Schema(
+        description = "Data e hora em que o erro ocorreu (ISO 8601)",
+        example = "2026-05-25T19:00:00",
+        type = SchemaType.STRING,
+        format = "date-time"
+    )
     private LocalDateTime timestamp;
 
     @JsonProperty("status")
-    @Schema(description = "Código HTTP do erro", example = "400")
+    @Schema(
+        description = "Código HTTP do erro",
+        example = "400",
+        type = SchemaType.INTEGER
+    )
     private Integer status;
 
     @JsonProperty("error")
-    @Schema(description = "Descrição do erro", example = "Bad Request")
+    @Schema(
+        description = "Descrição resumida do tipo de erro",
+        example = "Bad Request",
+        type = SchemaType.STRING
+    )
     private String error;
 
     @JsonProperty("message")
-    @Schema(description = "Mensagem de erro", example = "Validation failed")
+    @Schema(
+        description = "Mensagem detalhada do erro",
+        example = "Validation failed",
+        type = SchemaType.STRING
+    )
     private String message;
 
     @JsonProperty("path")
-    @Schema(description = "Caminho da requisição", example = "/api/simulacoes")
+    @Schema(
+        description = "Caminho da requisição que gerou o erro",
+        example = "/api/simulacoes",
+        type = SchemaType.STRING
+    )
     private String path;
 
     @JsonProperty("errors")
-    @Schema(description = "Lista de erros de validação")
+    @Schema(
+        description = "Lista de erros específicos de validação (quando aplicável)",
+        example = "[\"O valor inicial deve ser maior que zero\"]",
+        type = SchemaType.ARRAY
+    )
     private List<String> errors;
 
     public ErrorResponseDTO() {

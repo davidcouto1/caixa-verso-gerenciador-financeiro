@@ -1,6 +1,7 @@
 package br.com.david.desafio.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -8,23 +9,43 @@ import java.math.BigDecimal;
 /**
  * DTO para representar a memória de cálculo de cada mês.
  */
-@Schema(description = "Detalhamento da evolução financeira em um mês específico")
+@Schema(description = "Detalhamento da evolução financeira em um mês específico do financiamento")
 public class MemoriaCalculoDTO {
 
     @JsonProperty("mes")
-    @Schema(description = "Número do mês", example = "1")
+    @Schema(
+        description = "Número do mês no período do financiamento",
+        example = "1",
+        type = SchemaType.INTEGER,
+        minimum = "1"
+    )
     private Integer mes;
 
     @JsonProperty("saldoInicial")
-    @Schema(description = "Saldo devedor no início do mês", example = "1000.00")
+    @Schema(
+        description = "Saldo devedor no início do mês (antes dos juros)",
+        example = "1000.00",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal saldoInicial;
 
     @JsonProperty("juro")
-    @Schema(description = "Valor dos juros aplicados no mês", example = "15.00")
+    @Schema(
+        description = "Valor dos juros compostos aplicados no mês",
+        example = "15.00",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal juro;
 
     @JsonProperty("saldoFinal")
-    @Schema(description = "Saldo devedor no final do mês", example = "1015.00")
+    @Schema(
+        description = "Saldo devedor no final do mês (após aplicação dos juros)",
+        example = "1015.00",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal saldoFinal;
 
     public MemoriaCalculoDTO() {

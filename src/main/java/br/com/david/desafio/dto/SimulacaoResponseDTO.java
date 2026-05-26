@@ -1,6 +1,7 @@
 package br.com.david.desafio.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -9,35 +10,67 @@ import java.util.List;
 /**
  * DTO para retornar os dados completos de uma simulação de financiamento.
  */
-@Schema(description = "Resultado completo da simulação de financiamento")
+@Schema(description = "Resultado completo da simulação de financiamento com memória de cálculo")
 public class SimulacaoResponseDTO {
 
     @JsonProperty("id")
-    @Schema(description = "Identificador único da simulação", example = "1")
+    @Schema(
+        description = "Identificador único da simulação no banco de dados",
+        example = "1",
+        type = SchemaType.INTEGER,
+        format = "int64"
+    )
     private Long id;
 
     @JsonProperty("valorInicial")
-    @Schema(description = "Valor principal do financiamento", example = "1000.00")
+    @Schema(
+        description = "Valor principal do financiamento em reais",
+        example = "1000.00",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal valorInicial;
 
     @JsonProperty("taxaJurosMensal")
-    @Schema(description = "Taxa de juros mensal em percentual", example = "1.5")
+    @Schema(
+        description = "Taxa de juros mensal em percentual aplicada",
+        example = "1.50",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal taxaJurosMensal;
 
     @JsonProperty("prazoMeses")
-    @Schema(description = "Prazo do financiamento em meses", example = "12")
+    @Schema(
+        description = "Prazo total do financiamento em meses",
+        example = "12",
+        type = SchemaType.INTEGER
+    )
     private Integer prazoMeses;
 
     @JsonProperty("valorTotalFinal")
-    @Schema(description = "Valor total ao final do financiamento", example = "1195.62")
+    @Schema(
+        description = "Valor total ao final do financiamento (principal + juros)",
+        example = "1195.63",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal valorTotalFinal;
 
     @JsonProperty("valorTotalJuros")
-    @Schema(description = "Valor total de juros pagos", example = "195.62")
+    @Schema(
+        description = "Valor total de juros pagos durante todo o período",
+        example = "195.63",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal valorTotalJuros;
 
     @JsonProperty("memoriaCalculos")
-    @Schema(description = "Detalhamento mês a mês da evolução do financiamento")
+    @Schema(
+        description = "Detalhamento mês a mês da evolução do financiamento com juros compostos",
+        type = SchemaType.ARRAY
+    )
     private List<MemoriaCalculoDTO> memoriaCalculos;
 
     public SimulacaoResponseDTO() {

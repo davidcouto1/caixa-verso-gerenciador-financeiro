@@ -3,77 +3,88 @@ package br.com.david.desafio.service;
 import br.com.david.desafio.dto.MemoriaCalculoDTO;
 import br.com.david.desafio.dto.SimulacaoRequestDTO;
 import br.com.david.desafio.dto.SimulacaoResponseDTO;
-import br.com.david.desafio.entity.MemoriaCalculo;
+import br.com.david.desafio.dto.builder.SimulacaoResponseBuilder;
 import br.com.david.desafio.entity.Simulacao;
 import br.com.david.desafio.exception.SimulacaoNotFoundException;
-import br.com.david.desafio.repository.SimulacaoRepository;
+import br.com.david.desafio.factory.SimulacaoFactory;
+import br.com.david.desafio.repository.ISimulacaoRepository;
+import br.com.david.desafio.strategy.CalculoJurosStrategy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Service responsável pela lógica de negócio das simulações de financiamento.
- * Implementa o cálculo de juros compostos com precisão financeira usando BigDecimal.
+ * Implementa ISimulacaoService seguindo o Dependency Inversion Principle (SOLID).
+ * 
+ * Aplica padrões:
+ * - Strategy Pattern: Para diferentes cálculos de juros
+ * - Factory Pattern: Para criação de entidades
+ * - Builder Pattern: Para construção de DTOs
+ * - Dependency Inversion: Depende de abstrações (interfaces)
  */
 @ApplicationScoped
-public class SimulacaoService {
+public class SimulacaoService implements ISimulacaoService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SimulacaoService.class);
+
+    @ConfigProperty(name = "simulador.calculo.scale.monetario", defaultValue = "2")
+    int scaleMonetario;
     
-    private static final int SCALE = 2; // Precisão de 2 casas decimais para valores monetários
-    private static final int CALCULATION_SCALE = 10; // Precisão intermediária para cálculos
-    private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
-    private static final BigDecimal CEM = new BigDecimal("100");
+    @ConfigProperty(name = "simulador.calculo.scale.intermediario", defaultValue = "10")
+    int scaleIntermediario;
+    
+    @ConfigProperty(name = "simulador.prazo.maximo.meses", defaultValue = "360")
+    int prazoMaximoMeses;
 
+    // Dependency Inversion: Depende da interface, não da implementação
     @Inject
-    SimulacaoRepository simulacaoRepository;
+    ISimulacaoRepository simulacaoRepository;
+    
+    // Strategy Pattern: Injeção da estratégia de cálculo
+    @Inject
+    CalculoJurosStrategy calculoJurosStrategy;
+    
+    // Factory Pattern: Para criação de entidades
+    @Inject
+    SimulacaoFactory simulacaoFactory;
 
-    /**
-     * Cria e persiste uma nova simulação de financiamento.
-     * Calcula os juros compostos mês a mês e gera a memória de cálculo completa.
-     *
-     * @param requestDTO Dados de entrada da simulação
-     * @return DTO com a simulação completa e memória de cálculo
-     */
+    @Override
     @Transactional
+    @Timeout(value = 5, unit = ChronoUnit.SECONDS)
+    @Retry(maxRetries = 3, delay = 500, maxDuration = 10000)
     public SimulacaoResponseDTO criarSimulacao(SimulacaoRequestDTO requestDTO) {
         LOG.info("Iniciando criação de simulação: {}", requestDTO);
         
-        // Validação dos dados de entrada
         validarDadosEntrada(requestDTO);
         
-        // Criar entidade
-        Simulacao simulacao = new Simulacao(
-            requestDTO.getValorInicial(),
-            requestDTO.getTaxaJurosMensal(),
-            requestDTO.getPrazoMeses()
-        );
+        // Factory Pattern: Cria a entidade
+        Simulacao simulacao = simulacaoFactory.criarSimulacao(requestDTO);
         
-        // Calcular juros compostos e gerar memória de cálculo
-        calcularJurosCompostos(simulacao);
+        // Strategy Pattern: Calcula os juros
+        calculoJurosStrategy.calcular(simulacao, scaleMonetario, scaleIntermediario);
         
-        // Persistir
         simulacaoRepository.persist(simulacao);
         
-        LOG.info("Simulação criada com sucesso - ID: {}", simulacao.getId());
+        LOG.info("Simulação criada com sucesso - ID: {} usando estratégia: {}", 
+                simulacao.getId(), calculoJurosStrategy.getNomeEstrategia());
         
         return converterParaDTO(simulacao);
     }
 
-    /**
-     * Busca uma simulação existente por ID.
-     *
-     * @param id Identificador da simulação
-     * @return DTO com a simulação completa
-     * @throws SimulacaoNotFoundException se a simulação não for encontrada
-     */
+    @Override
+    @Timeout(value = 3, unit = ChronoUnit.SECONDS)
+    @Retry(maxRetries = 2, delay = 200)
     public SimulacaoResponseDTO buscarSimulacao(Long id) {
         LOG.info("Buscando simulação com ID: {}", id);
         
@@ -89,57 +100,8 @@ public class SimulacaoService {
     }
 
     /**
-     * Calcula os juros compostos mês a mês e popula a memória de cálculo.
-     * Fórmula: Saldo Final = Saldo Inicial × (1 + Taxa/100)
-     *
-     * @param simulacao Entidade da simulação a ser calculada
-     */
-    private void calcularJurosCompostos(Simulacao simulacao) {
-        LOG.debug("Calculando juros compostos para {} meses", simulacao.getPrazoMeses());
-        
-        // Converter taxa percentual para decimal (ex: 1.5% -> 0.015)
-        BigDecimal taxaDecimal = simulacao.getTaxaJurosMensal()
-            .divide(CEM, CALCULATION_SCALE, ROUNDING_MODE);
-        
-        // Fator multiplicador: (1 + taxa)
-        BigDecimal fatorJuros = BigDecimal.ONE.add(taxaDecimal);
-        
-        BigDecimal saldoAtual = simulacao.getValorInicial();
-        
-        // Calcular cada mês
-        for (int mes = 1; mes <= simulacao.getPrazoMeses(); mes++) {
-            BigDecimal saldoInicial = saldoAtual.setScale(SCALE, ROUNDING_MODE);
-            
-            // Calcular novo saldo: Saldo × (1 + taxa)
-            BigDecimal saldoFinal = saldoAtual.multiply(fatorJuros)
-                .setScale(SCALE, ROUNDING_MODE);
-            
-            // Juros do mês = Saldo Final - Saldo Inicial
-            BigDecimal juroMes = saldoFinal.subtract(saldoInicial);
-            
-            // Criar registro da memória de cálculo
-            MemoriaCalculo memoria = new MemoriaCalculo(mes, saldoInicial, juroMes, saldoFinal);
-            simulacao.adicionarMemoriaCalculo(memoria);
-            
-            // Atualizar saldo para próximo mês
-            saldoAtual = saldoFinal;
-            
-            LOG.debug("Mês {}: Saldo Inicial={}, Juros={}, Saldo Final={}", 
-                mes, saldoInicial, juroMes, saldoFinal);
-        }
-        
-        // Calcular totais finais
-        simulacao.calcularTotais();
-        
-        LOG.debug("Cálculo finalizado - Valor Total: {}, Total Juros: {}", 
-            simulacao.getValorTotalFinal(), simulacao.getValorTotalJuros());
-    }
-
-    /**
      * Valida os dados de entrada da simulação.
-     *
-     * @param requestDTO Dados a serem validados
-     * @throws IllegalArgumentException se algum dado for inválido
+     * Aplica o Single Responsibility Principle.
      */
     private void validarDadosEntrada(SimulacaoRequestDTO requestDTO) {
         if (requestDTO.getValorInicial().compareTo(BigDecimal.ZERO) <= 0) {
@@ -154,16 +116,13 @@ public class SimulacaoService {
             throw new IllegalArgumentException("O prazo deve ser maior que zero");
         }
         
-        if (requestDTO.getPrazoMeses() > 360) {
-            throw new IllegalArgumentException("O prazo máximo é de 360 meses");
+        if (requestDTO.getPrazoMeses() > prazoMaximoMeses) {
+            throw new IllegalArgumentException("O prazo máximo é de " + prazoMaximoMeses + " meses");
         }
     }
 
     /**
-     * Converte a entidade Simulacao para o DTO de resposta.
-     *
-     * @param simulacao Entidade a ser convertida
-     * @return DTO de resposta
+     * Converte a entidade para DTO usando o Builder Pattern.
      */
     private SimulacaoResponseDTO converterParaDTO(Simulacao simulacao) {
         List<MemoriaCalculoDTO> memoriaCalculosDTO = simulacao.getMemoriaCalculos().stream()
@@ -175,14 +134,15 @@ public class SimulacaoService {
             ))
             .collect(Collectors.toList());
         
-        return new SimulacaoResponseDTO(
-            simulacao.getId(),
-            simulacao.getValorInicial(),
-            simulacao.getTaxaJurosMensal(),
-            simulacao.getPrazoMeses(),
-            simulacao.getValorTotalFinal(),
-            simulacao.getValorTotalJuros(),
-            memoriaCalculosDTO
-        );
+        // Builder Pattern: Construção fluente do DTO
+        return SimulacaoResponseBuilder.builder()
+            .id(simulacao.getId())
+            .valorInicial(simulacao.getValorInicial())
+            .taxaJurosMensal(simulacao.getTaxaJurosMensal())
+            .prazoMeses(simulacao.getPrazoMeses())
+            .valorTotalFinal(simulacao.getValorTotalFinal())
+            .valorTotalJuros(simulacao.getValorTotalJuros())
+            .memoriaCalculos(memoriaCalculosDTO)
+            .build();
     }
 }

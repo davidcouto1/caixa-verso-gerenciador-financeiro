@@ -2,29 +2,199 @@
 	"info": {
 		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 		"name": "Simulador de Financiamentos",
-		"description": "Collection para testar a API REST de simulação de financiamentos com juros compostos",
+		"description": "Collection completa para testar a API REST de simulação de financiamentos com juros compostos.\n\nInclui:\n- ✅ Health Checks (status geral, liveness, readiness)\n- ✅ Métricas Prometheus (application, base JVM, vendor Quarkus)\n- ✅ Documentação OpenAPI/Swagger\n- ✅ API de Negócio (criar e buscar simulações)\n- ✅ Testes de Validação (valores negativos, limites, erros)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Health Check",
+			"name": "Health Check - Status Geral",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/api/simulacoes/health",
+					"raw": "http://localhost:8080/q/health",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"api",
-						"simulacoes",
+						"q",
 						"health"
 					]
 				},
-				"description": "Verifica se a API está funcionando"
+				"description": "Verifica o status geral da aplicação (Liveness + Readiness + Database)"
+			},
+			"response": []
+		},
+		{
+			"name": "Health Check - Liveness",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/q/health/live",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"q",
+						"health",
+						"live"
+					]
+				},
+				"description": "Verifica se a aplicação está viva (Liveness probe para Kubernetes)"
+			},
+			"response": []
+		},
+		{
+			"name": "Health Check - Readiness",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/q/health/ready",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"q",
+						"health",
+						"ready"
+					]
+				},
+				"description": "Verifica se a aplicação está pronta para receber tráfego (Readiness probe para Kubernetes)"
+			},
+			"response": []
+		},
+		{
+			"name": "Métricas - Todas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/q/metrics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"q",
+						"metrics"
+					]
+				},
+				"description": "Retorna todas as métricas da aplicação no formato Prometheus"
+			},
+			"response": []
+		},
+		{
+			"name": "Métricas - Application",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/q/metrics/application",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"q",
+						"metrics",
+						"application"
+					]
+				},
+				"description": "Retorna apenas métricas customizadas da aplicação (@Counted, @Timed)"
+			},
+			"response": []
+		},
+		{
+			"name": "Métricas - Base (JVM)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/q/metrics/base",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"q",
+						"metrics",
+						"base"
+					]
+				},
+				"description": "Retorna métricas base da JVM (memória, threads, CPU)"
+			},
+			"response": []
+		},
+		{
+			"name": "Métricas - Vendor (Quarkus)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/q/metrics/vendor",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"q",
+						"metrics",
+						"vendor"
+					]
+				},
+				"description": "Retorna métricas específicas do Quarkus"
+			},
+			"response": []
+		},
+		{
+			"name": "OpenAPI - Especificação",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/openapi",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"openapi"
+					]
+				},
+				"description": "Retorna a especificação OpenAPI completa (JSON/YAML)"
+			},
+			"response": []
+		},
+		{
+			"name": "Swagger UI",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/swagger-ui",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"swagger-ui"
+					]
+				},
+				"description": "Abre a interface Swagger UI para testar os endpoints interativamente"
 			},
 			"response": []
 		},

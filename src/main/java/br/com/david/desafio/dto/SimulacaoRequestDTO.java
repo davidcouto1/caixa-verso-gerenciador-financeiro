@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -17,19 +18,40 @@ public class SimulacaoRequestDTO {
     @NotNull(message = "O valor inicial é obrigatório")
     @DecimalMin(value = "0.01", message = "O valor inicial deve ser maior que zero")
     @JsonProperty("valorInicial")
-    @Schema(description = "Valor principal do financiamento", example = "1000.00", required = true)
+    @Schema(
+        description = "Valor principal do financiamento em reais",
+        example = "1000.00",
+        required = true,
+        minimum = "0.01",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal valorInicial;
 
     @NotNull(message = "A taxa de juros mensal é obrigatória")
     @DecimalMin(value = "0.01", message = "A taxa de juros deve ser maior que zero")
     @JsonProperty("taxaJurosMensal")
-    @Schema(description = "Taxa de juros mensal em percentual", example = "1.5", required = true)
+    @Schema(
+        description = "Taxa de juros mensal em percentual (ex: 1.5 para 1,5%)",
+        example = "1.5",
+        required = true,
+        minimum = "0.01",
+        type = SchemaType.NUMBER,
+        format = "decimal"
+    )
     private BigDecimal taxaJurosMensal;
 
     @NotNull(message = "O prazo em meses é obrigatório")
     @Min(value = 1, message = "O prazo deve ser de pelo menos 1 mês")
     @JsonProperty("prazoMeses")
-    @Schema(description = "Prazo do financiamento em meses", example = "12", required = true)
+    @Schema(
+        description = "Prazo do financiamento em meses (máximo: 360 meses ou 30 anos)",
+        example = "12",
+        required = true,
+        minimum = "1",
+        maximum = "360",
+        type = SchemaType.INTEGER
+    )
     private Integer prazoMeses;
 
     public SimulacaoRequestDTO() {

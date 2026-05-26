@@ -227,15 +227,16 @@ class SimuladorFinanciamentosResourceTest {
     }
 
     @Test
-    @DisplayName("Deve testar health check endpoint")
+    @DisplayName("Deve testar health check endpoint do MicroProfile")
     void deveTestarHealthCheck() {
         given()
         .when()
-            .get("/api/simulacoes/health")
+            .get("/q/health")
         .then()
             .statusCode(200)
-            .contentType(ContentType.TEXT)
-            .body(containsString("running"));
+            .contentType(ContentType.JSON)
+            .body("status", equalTo("UP"))
+            .body("checks.size()", greaterThan(0));
     }
 
     @Test
@@ -338,4 +339,211 @@ class SimuladorFinanciamentosResourceTest {
             .statusCode(400)
             .body("status", equalTo(400));
     }
+
+    @Test
+    @DisplayName("Deve retornar 400 para taxa de juros negativa")
+    void deveRetornar400ParaTaxaJurosNegativa() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("1000.00"),
+            new BigDecimal("-1.5"),
+            12
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(400)
+            .body("status", equalTo(400));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 para prazo negativo")
+    void deveRetornar400ParaPrazoNegativo() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("1000.00"),
+            new BigDecimal("1.5"),
+            -12
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(400)
+            .body("status", equalTo(400));
+    }
+
+    @Test
+    @DisplayName("Deve processar valores decimais com múltiplas casas")
+    void deveProcessarValoresComMultiplasCasas() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("1234.567890"),
+            new BigDecimal("1.987654"),
+            6
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .body("valorInicial", notNullValue())
+            .body("valorTotalFinal", greaterThan(1234.00f))
+            .body("memoriaCalculos", hasSize(6));
+    }
+
+    @Test
+    @DisplayName("Deve processar valor inicial muito pequeno")
+    void deveProcessarValorMuitoPequeno() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("0.01"),
+            new BigDecimal("1.5"),
+            3
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .body("valorInicial", equalTo(0.01f))
+            .body("memoriaCalculos", hasSize(3));
+    }
+
+    @Test
+    @DisplayName("Deve processar taxa de juros muito pequena")
+    void deveProcessarTaxaMuitoPequena() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("1000.00"),
+            new BigDecimal("0.01"),
+            12
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .body("taxaJurosMensal", equalTo(0.01f))
+            .body("valorTotalJuros", greaterThan(0.00f));
+    }
+
+    @Test
+    @DisplayName("Deve processar taxa de juros muito alta")
+    void deveProcessarTaxaMuitoAlta() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("1000.00"),
+            new BigDecimal("50.0"),
+            3
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .body("taxaJurosMensal", equalTo(50.0f))
+            .body("valorTotalFinal", greaterThan(3000.00f));
+    }
+
+    @Test
+    @DisplayName("Deve criar múltiplas simulações independentes")
+    void deveCriarMultiplasSimulacoesIndependentes() {
+        SimulacaoRequestDTO request1 = new SimulacaoRequestDTO(
+            new BigDecimal("1000.00"),
+            new BigDecimal("1.5"),
+            6
+        );
+
+        SimulacaoRequestDTO request2 = new SimulacaoRequestDTO(
+            new BigDecimal("2000.00"),
+            new BigDecimal("2.0"),
+            12
+        );
+
+        Integer id1 = given()
+            .contentType(ContentType.JSON)
+            .body(request1)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        Integer id2 = given()
+            .contentType(ContentType.JSON)
+            .body(request2)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        // Verificar que são diferentes
+        given()
+        .when()
+            .get("/api/simulacoes/" + id1)
+        .then()
+            .body("valorInicial", equalTo(1000.00f));
+
+        given()
+        .when()
+            .get("/api/simulacoes/" + id2)
+        .then()
+            .body("valorInicial", equalTo(2000.00f));
+    }
+
+    @Test
+    @DisplayName("Deve processar prazo de 1 mês corretamente")
+    void deveProcessarPrazoDeUmMes() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            new BigDecimal("5000.00"),
+            new BigDecimal("2.5"),
+            1
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(201)
+            .body("prazoMeses", equalTo(1))
+            .body("memoriaCalculos", hasSize(1))
+            .body("memoriaCalculos[0].mes", equalTo(1));
+    }
+
+    @Test
+    @DisplayName("Deve processar valor inicial zero vírgula algo")
+    void deveRejeitarValorInicialZeroVirgula() {
+        SimulacaoRequestDTO request = new SimulacaoRequestDTO(
+            BigDecimal.ZERO,
+            new BigDecimal("1.5"),
+            12
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post("/api/simulacoes")
+        .then()
+            .statusCode(400)
+            .body("status", equalTo(400));
+    }
 }
+
