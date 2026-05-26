@@ -31,9 +31,9 @@ Relatório de cobertura: `target/site/jacoco/index.html`
 
 ## Arquitetura e Padrões de Projeto
 
-O projeto utiliza arquitetura em camadas (Resource → Service → Repository) com padrões de projeto para facilitar manutenção e extensibilidade.
+O projeto utiliza arquitetura em camadas (Resource → Service → Repository) seguindo padrões GoF (Gang of Four) para facilitar manutenção e extensibilidade.
 
-**Padrões implementados:**
+**Padrões GoF implementados:**
 - Strategy Pattern para cálculo de juros (JurosSimplesStrategy, JurosCompostosStrategy)
 - Factory Pattern para criação de entidades (SimulacaoFactory)
 - Builder Pattern para construção fluente de objetos
