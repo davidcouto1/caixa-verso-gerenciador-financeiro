@@ -444,16 +444,7 @@ http://localhost:8080/openapi
 }
 ```
 
-### 3. Health Check (Legado)
-
-**GET** `/api/simulacoes/health`
-
-**Response (200 OK):**
-```
-Simulador de Financiamentos - API is running!
-```
-
-### 4. Health Check MicroProfile (Recomendado)
+### 3. Health Check MicroProfile
 
 **GET** `/q/health`
 
@@ -481,7 +472,7 @@ Simulador de Financiamentos - API is running!
 }
 ```
 
-### 5. Métricas Prometheus
+### 4. Métricas Prometheus
 
 **GET** `/q/metrics/application`
 
