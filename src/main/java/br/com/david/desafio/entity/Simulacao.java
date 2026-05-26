@@ -37,6 +37,7 @@ public class Simulacao {
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
 
+    // Fetch EAGER pq sempre precisa da memória ao buscar simulação
     @OneToMany(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("mes ASC")
     private List<MemoriaCalculo> memoriaCalculos = new ArrayList<>();

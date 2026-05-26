@@ -8,9 +8,7 @@ import java.util.Optional;
 
 /**
  * Repository para operações de persistência da entidade Simulacao.
- * Utiliza Panache para simplificar as operações de banco de dados.
- * 
- * Implementa ISimulacaoRepository seguindo o Dependency Inversion Principle (SOLID).
+ * Usa Panache para simplificar queries.
  */
 @ApplicationScoped
 public class SimulacaoRepository implements ISimulacaoRepository {
@@ -22,6 +20,7 @@ public class SimulacaoRepository implements ISimulacaoRepository {
 
     @Override
     public Simulacao findByIdWithMemoria(Long id) {
+        // TODO: avaliar performance dessa query com muitos registros de memória
         return find("SELECT s FROM Simulacao s LEFT JOIN FETCH s.memoriaCalculos WHERE s.id = ?1", id)
                 .firstResult();
     }

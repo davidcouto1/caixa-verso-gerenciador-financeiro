@@ -1,429 +1,105 @@
-
-# 🏦 Simulador de Financiamentos
+﻿# Simulador de Financiamentos
 
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.java.net/)
 [![Quarkus](https://img.shields.io/badge/Quarkus-3.35.4-blue.svg)](https://quarkus.io/)
-[![H2 Database](https://img.shields.io/badge/H2-Embedded-brightgreen.svg)](https://www.h2database.com/)
-[![MicroProfile](https://img.shields.io/badge/MicroProfile-6.x-purple.svg)](https://microprofile.io/)
-[![Jacoco](https://img.shields.io/badge/Coverage-93%25-brightgreen.svg)](target/site/jacoco/index.html)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📋 Descrição
+API REST para simulação de financiamentos com cálculo de juros compostos. Desenvolvida em Java 25 com Quarkus, persiste dados em H2 e oferece documentação via Swagger.
 
-API REST para simulação de financiamentos com cálculo de **juros compostos**, desenvolvida em **Java 25** usando o framework **Quarkus**. A aplicação persiste os dados em um banco de dados **H2 embutido** e oferece documentação automática via **OpenAPI/Swagger**.
+**Principais características:**
+- Cálculo de juros compostos com BigDecimal
+- Memória de cálculo mês a mês
+- Persistência em H2 Database
+- Cobertura de testes: 93%
+- Validação de entrada com Bean Validation
 
-### ✨ Características
+## Quick Start
 
-- ✅ Cálculo preciso de juros compostos usando `BigDecimal`
-- ✅ Memória de cálculo detalhada mês a mês
-- ✅ Persistência em H2 Database (file-based)
-- ✅ API REST documentada com OpenAPI/Swagger
-- ✅ Cobertura de testes: 93% com 99 testes (verificada com Jacoco)
-- ✅ Validação de dados de entrada com Bean Validation
-- ✅ Tratamento de erros padronizado
-- ✅ Arquitetura em camadas (Resource → Service → Repository)
-- ✅ Sem uso de Docker (100% nativo)
-
----
-
-## ⚡ Quick Start - Comandos Essenciais
-
-### 🔧 Compilar o projeto
 ```bash
+# Compilar
 mvn clean compile
-```
 
-### 🚀 Executar a aplicação
-```bash
+# Executar
 mvn quarkus:dev
-```
 
-**🌐 Acesse:** http://localhost:8080
-
-#### ⏱️ Tempo de Inicialização
-- **Modo dev (sem testes):** ~15-20 segundos
-  - Compilação de 23 arquivos Java
-  - Inicialização do Quarkus
-  - Criação do banco H2 em disco
-  
-- **Execuções subsequentes:** Ainda mais rápidas graças ao:
-  - 🔥 Live reload do Quarkus (hot reload automático)
-  - 📦 Cache de compilação
-  - 🗄️ Banco H2 já criado
-
-### 🧪 Executar testes separadamente
-
-> **⚡ Nota:** Os testes **NÃO** são executados automaticamente no modo dev. Para executar os testes, use os comandos abaixo.
-
-Para rodar os testes com cobertura JaCoCo, use:
-```bash
+# Testes
 mvn clean test
 ```
 
-**📊 Relatório de cobertura:** Gerado em `target/site/jacoco/index.html`
+Acesse: http://localhost:8080
 
-**⚡ Testes rápidos (sem JaCoCo):**
-```bash
-mvn test -Pfast-test
-```
+Relatório de cobertura: `target/site/jacoco/index.html`
 
----
+## Arquitetura e Padrões de Projeto
 
-## �️ Padrões de Projeto Aplicados
+O projeto utiliza arquitetura em camadas (Resource → Service → Repository) com padrões de projeto para facilitar manutenção e extensibilidade.
 
-Este projeto demonstra **domínio sólido de padrões de projeto** através da aplicação criteriosa de princípios SOLID e padrões GoF (Gang of Four), garantindo código limpo, manutenível e extensível.
+**Padrões implementados:**
+- Strategy Pattern para cálculo de juros (JurosSimplesStrategy, JurosCompostosStrategy)
+- Factory Pattern para criação de entidades (SimulacaoFactory)
+- Builder Pattern para construção fluente de objetos
+- Repository Pattern para abstração de persistência
 
-### 📐 Princípios SOLID
+**Princípios SOLID aplicados:**
+- Single Responsibility (separação de responsabilidades entre camadas)
+- Dependency Inversion (uso de CDI e interfaces)
+- Open/Closed (extensibilidade via Strategy)
 
-#### **S - Single Responsibility Principle (Responsabilidade Única)**
-- **`SimulacaoService`**: Responsável exclusivamente pela lógica de negócio de simulações
-- **`SimulacaoRepository`**: Focado apenas em operações de persistência
-- **`JurosStrategy`**: Interface dedicada ao cálculo de juros
-- **Exception Mappers**: Cada mapper trata apenas um tipo específico de exceção
+## Especificações MicroProfile
 
-#### **O - Open/Closed Principle (Aberto/Fechado)**
-- **Strategy Pattern**: Novo tipo de juros pode ser adicionado sem modificar código existente
-- **`SimulacaoFactory`**: Extensível para novos tipos de simulação sem alterar a factory
-- **Exception Handling**: Novos mappers podem ser adicionados sem modificar os existentes
+- **MicroProfile Health**: Liveness/Readiness checks em `/q/health`
+- **MicroProfile Metrics**: Métricas Prometheus em `/q/metrics`
+- **MicroProfile Config**: Configurações externalizadas
+- **MicroProfile Fault Tolerance**: @Timeout e @Retry no Service
+- **MicroProfile OpenAPI**: Swagger UI em `/swagger-ui`
 
-#### **L - Liskov Substitution Principle (Substituição de Liskov)**
-- **`JurosSimplesStrategy` e `JurosCompostosStrategy`**: Implementações substituíveis de `JurosStrategy`
-- **Panache Repositories**: Extensão de `PanacheRepository` mantém contrato base
+## Tecnologias
 
-#### **I - Interface Segregation Principle (Segregação de Interface)**
-- **`JurosStrategy`**: Interface coesa com apenas o método `calcular()`
-- **DTOs específicos**: `SimulacaoRequestDTO`, `SimulacaoResponseDTO`, `MemoriaCalculoDTO` - cada um com seu propósito
-- Interfaces pequenas e focadas evitam dependências desnecessárias
+- Java 25
+- Quarkus 3.35.4  
+- H2 Database (embedded)
+- Hibernate ORM with Panache
+- JUnit 5 + RestAssured
+- Jacoco (93% cobertura)
 
-#### **D - Dependency Inversion Principle (Inversão de Dependência)**
-- **Injeção de Dependências CDI**: `@Inject` para desacoplar componentes
-- **`SimulacaoService`** depende da abstração `JurosStrategy`, não de implementações concretas
-- **`SimulacaoFactory`** injeta estratégias via CDI, permitindo troca em tempo de execução
-
-### 🎨 Padrões GoF (Gang of Four)
-
-#### **Strategy Pattern (Comportamental)**
-```
-Interface: JurosStrategy
-├── JurosSimplesStrategy (Juros Simples: J = P × i × t)
-└── JurosCompostosStrategy (Juros Compostos: M = P × (1 + i)^t)
-```
-- **Localização**: `br.com.david.desafio.strategy`
-- **Benefício**: Algoritmos de cálculo intercambiáveis sem alterar o serviço
-- **Uso**: `SimulacaoService` seleciona estratégia baseada no prazo
-
-#### **Factory Pattern (Criacional)**
-```
-SimulacaoFactory
-├── buildSimulacaoEntity() - Constrói entidade Simulacao
-├── buildResponseDTO() - Constrói DTO de resposta
-└── buildMemoriaCalculo() - Constrói memória de cálculo
-```
-- **Localização**: `br.com.david.desafio.factory.SimulacaoFactory`
-- **Benefício**: Centraliza lógica de criação de objetos complexos
-- **Uso**: Separa construção de representação, facilitando testes
-
-#### **Builder Pattern (Criacional)**
-```
-Simulacao.Builder
-├── valorInicial()
-├── taxaJurosMensal()
-├── prazoMeses()
-└── build()
-```
-- **Localização**: `br.com.david.desafio.entity.Simulacao`
-- **Benefício**: Construção fluente e legível de entidades
-- **Uso**: Testes e factory utilizam builder para criar objetos
-
-#### **Repository Pattern (Estrutural)**
-```
-SimulacaoRepository extends PanacheRepository<Simulacao>
-├── findByIdWithMemoriaCalculo()
-├── listAllWithMemoriaCalculo()
-└── Métodos herdados do Panache
-```
-- **Localização**: `br.com.david.desafio.repository`
-- **Benefício**: Abstrai persistência e queries do banco
-- **Uso**: Camada de acesso a dados isolada e testável
-
-#### **Mapper Pattern (Estrutural)**
-```
-Exception Mappers (JAX-RS ExceptionMapper)
-├── ConstraintViolationExceptionMapper (400)
-├── IllegalArgumentExceptionMapper (400)
-├── SimulacaoNotFoundExceptionMapper (404)
-└── GenericExceptionMapper (500)
-```
-- **Localização**: `br.com.david.desafio.exception.mapper`
-- **Benefício**: Transforma exceções em respostas HTTP padronizadas
-- **Uso**: Tratamento centralizado de erros com ErrorResponseDTO
-
-### 🎯 Benefícios Demonstrados
-
-- ✅ **Manutenibilidade**: Código organizado e de fácil evolução
-- ✅ **Testabilidade**: 93% de cobertura com testes unitários
-- ✅ **Extensibilidade**: Novos tipos de juros ou validações sem quebrar código existente
-- ✅ **Baixo Acoplamento**: Componentes independentes e substituíveis
-- ✅ **Alta Coesão**: Cada classe tem responsabilidade bem definida
-
----
-
-## �🎯 Especificações MicroProfile Implementadas
-
-A aplicação implementa as principais especificações do **Eclipse MicroProfile** para observabilidade, configuração e resiliência:
-
-> **📝 Nota de Segurança:** Esta aplicação **não utiliza JWT/autenticação** para facilitar os testes e avaliação. Em ambiente de produção, recomenda-se implementar MicroProfile JWT (JSON Web Token) para autenticação e autorização.
-
-#### 📊 **MicroProfile Metrics** (Micrometer + Prometheus)
-- **@Counted**: Contador de simulações criadas e buscadas
-- **@Timed**: Medição de tempo de execução dos endpoints
-- **Endpoint de métricas**: `/q/metrics` (formato Prometheus)
-- Métricas incluem: latência, throughput, taxas de erro
-
-#### 🏥 **MicroProfile Health**
-- **Liveness Check**: Verifica se a aplicação está viva e responsiva
-- **Readiness Check**: Valida conexão com banco de dados H2
-- **Endpoints**:
-  - `/q/health` - Status geral (UP/DOWN)
-  - `/q/health/live` - Liveness probe
-  - `/q/health/ready` - Readiness probe
-
-#### ⚙️ **MicroProfile Config**
-- **@ConfigProperty**: Externalização de configurações
-- Propriedades configuráveis:
-  - `simulador.calculo.scale.monetario` - Precisão monetária (padrão: 2)
-  - `simulador.calculo.scale.intermediario` - Precisão de cálculos (padrão: 10)
-  - `simulador.prazo.maximo.meses` - Prazo máximo permitido (padrão: 360)
-
-#### 🛡️ **MicroProfile Fault Tolerance**
-- **@Timeout**: Limite de tempo para operações (3-5 segundos)
-- **@Retry**: Retentativas automáticas em caso de falha (2-3 tentativas)
-- Aplicado em:
-  - Criação de simulações (5s timeout, 3 retries)
-  - Busca de simulações (3s timeout, 2 retries)
-
-#### 📖 **MicroProfile OpenAPI**
-- Documentação automática da API
-- Interface Swagger UI: `/swagger-ui`
-- Especificação OpenAPI: `/openapi`
-
-#### 🚀 **Benefícios para Produção**
-- **Observabilidade**: Métricas e health checks prontos para Kubernetes/OpenShift
-- **Resiliência**: Timeouts e retries automáticos protegem contra falhas transientes
-- **Configuração**: Externalização facilita deploys em diferentes ambientes
-- **Monitoramento**: Integração nativa com Prometheus e Grafana
-- **Cloud-Ready**: Implementa padrões de [12-Factor App](https://12factor.net/)
-
----
-
-## 🛠️ Stack Tecnológica
-
-### Core
-- **Java**: 25 (Eclipse Adoptium Temurin OpenJDK)
-- **Quarkus**: 3.35.4 (Supersonic Subatomic Java)
-- **Maven**: 3.x (wrapper incluído)
-
-### Persistência
-- **H2 Database**: Embedded file-based
-- **Hibernate ORM with Panache**: ORM simplificado
-- **Jakarta Persistence**: JPA 3.x
-
-### API REST
-- **JAX-RS**: Jakarta RESTful Web Services
-- **Jackson**: Serialização JSON
-- **Bean Validation**: Validação de dados
-
-### MicroProfile
-- **SmallRye Health**: 4.x (Health checks)
-- **Micrometer + Prometheus**: Métricas
-- **SmallRye Fault Tolerance**: 6.x (Timeout, Retry)
-- **MicroProfile Config**: 3.x (Configuração externalizada)
-- **SmallRye OpenAPI**: 3.x (Documentação)
-
-### Testes
-- **JUnit 5**: Framework de testes
-- **RestAssured**: Testes de API REST
-- **AssertJ**: 3.26.3 (Assertions fluentes)
-- **Jacoco**: 0.8.13 (Cobertura de código - suporte Java 25)
-
----
-
-## ⚠️ IMPORTANTE: Execução 100% Nativa (SEM Docker)
-
-**Este projeto foi desenvolvido seguindo rigorosamente a restrição de NÃO USAR Docker ou Docker Compose.**
-
-### ✅ O que isso significa:
-- ✅ **Execução totalmente nativa** usando apenas Java SDK e Maven
-- ✅ **H2 Database embutido** (file-based) - sem containers
-- ✅ **Tabelas criadas automaticamente** pelo Hibernate
-- ✅ **Zero dependência de Docker** para compilar, testar ou executar
-- ✅ **Comandos Maven nativos** (mvnw.cmd) para tudo
-
-### ❌ O que NÃO existe no projeto:
-- ❌ Nenhum Dockerfile
-- ❌ Nenhum docker-compose.yml
-- ❌ Nenhuma imagem Docker
-- ❌ Nenhum container necessário
-
-### 📝 Verificação:
-Veja o arquivo [CONFORMIDADE.md](CONFORMIDADE.md) para verificação completa de todas as restrições e requisitos do desafio.
-
----
-
-## �🛠️ Tecnologias Utilizadas
-
-| Tecnologia | Versão | Propósito |
-|-----------|--------|-----------|
-| **Java** | 25 | Linguagem de programação |
-| **Quarkus** | 3.35.4 | Framework backend |
-| **Hibernate ORM with Panache** | - | Persistência de dados |
-| **H2 Database** | - | Banco de dados embutido |
-| **SmallRye OpenAPI** | - | Documentação da API |
-| **JUnit 5** | - | Framework de testes |
-| **RestAssured** | - | Testes de integração |
-| **Mockito** | 5.12.0 | Mocks para testes unitários |
-| **AssertJ** | 3.26.3 | Asserções expressivas |
-| **Jacoco** | 0.8.12 | Cobertura de código |
-
----
-
-## 📐 Arquitetura
-
-O projeto segue uma arquitetura em camadas bem definida:
+## Estrutura do Projeto
 
 ```
 br.com.david.desafio/
-├── config/                 # Configurações da aplicação
-│   └── OpenAPIConfig       # Configuração OpenAPI/Swagger
+├── config/                 # Configurações (OpenAPI)
 ├── dto/                    # Data Transfer Objects
-│   ├── SimulacaoRequestDTO
-│   ├── SimulacaoResponseDTO
-│   ├── MemoriaCalculoDTO
-│   └── ErrorResponseDTO
 ├── entity/                 # Entidades JPA
-│   ├── Simulacao
-│   └── MemoriaCalculo
-├── repository/             # Camada de persistência (Panache)
-│   └── SimulacaoRepository
+├── repository/             # Camada de persistência
 ├── service/                # Lógica de negócio
-│   ├── ISimulacaoService   # Interface do serviço
-│   └── SimulacaoService    # Implementação
 ├── strategy/               # Strategy Pattern (cálculos)
-│   ├── ICalculoJurosStrategy
-│   ├── JurosCompostosStrategy
-│   └── JurosSimplesStrategy
 ├── factory/                # Factory Pattern
-│   └── SimulacaoFactory    # Criação de simulações
 ├── health/                 # Health Checks MicroProfile
-│   └── SimuladorHealthCheck (Liveness + Readiness + Database)
-├── exception/              # Exceções e tratamento
-│   ├── SimulacaoNotFoundException
-│   └── mapper/             # Exception Mappers
-│       ├── ConstraintViolationExceptionMapper
-│       ├── IllegalArgumentExceptionMapper
-│       ├── SimulacaoNotFoundExceptionMapper
-│       └── GenericExceptionMapper
-└── SimuladorFinanciamentosResource  # Controlador REST (@Metrics, @FaultTolerance)
-
-test/br.com.david.desafio/  # Estrutura de testes (99 testes, 93% cobertura)
-├── builder/                # Builders para testes
-├── exception/mapper/       # Testes dos exception mappers
-├── factory/                # Testes da factory
-├── health/                 # Testes dos health checks
-├── repository/             # Testes dos repositórios
-├── service/                # Testes dos serviços
-└── strategy/               # Testes das estratégias de cálculo
+├── exception/              # Exceções e mappers
+└── SimuladorFinanciamentosResource.java
 ```
 
-### Padrões de Projeto Implementados
-
-- **Strategy Pattern**: Diferentes estratégias de cálculo de juros (simples/compostos)
-- **Factory Pattern**: Criação centralizada de objetos Simulacao
-- **Builder Pattern**: Construção fluente de DTOs nos testes
-- **Repository Pattern**: Abstração da camada de persistência com Panache
-- **Exception Mappers**: Tratamento centralizado de exceções
-
-### Anotações MicroProfile nos Componentes
-
-- **SimuladorFinanciamentosResource**: `@Counted`, `@Timed` (métricas)
-- **SimulacaoService**: `@Timeout`, `@Retry`, `@ConfigProperty` (resiliência e config)
-- **SimuladorHealthCheck**: `@Liveness`, `@Readiness` (health checks)
-- **Exception Mappers**: `@Provider` (tratamento global de exceções)
-
----
-
-## 🚀 Pré-requisitos
-
-Antes de executar o projeto, certifique-se de ter:
-
-- **Java 25** instalado
-- **Maven 3.9+** instalado
-- **Variável de ambiente `JAVA_HOME`** configurada
-
-### Verificar instalação:
-
-```bash
-java -version
-mvn -version
-```
-
----
-
-##  Endpoints
+## Endpoints
 
 ### API de Negócio
 - **POST** `/api/simulacoes` - Cria uma nova simulação
 - **GET** `/api/simulacoes/{id}` - Busca uma simulação por ID
 
 ### Endpoints MicroProfile
-
-#### 🏥 Health Checks
-- **GET** `/q/health` - Status geral da aplicação (Liveness + Readiness)
-- **GET** `/q/health/live` - Liveness probe (aplicação está viva?)
-- **GET** `/q/health/ready` - Readiness probe (aplicação pronta para tráfego?)
-
-#### 📊 Métricas
-- **GET** `/q/metrics` - Métricas Prometheus (todas)
-- **GET** `/q/metrics/application` - Métricas da aplicação
-- **GET** `/q/metrics/base` - Métricas base da JVM
-- **GET** `/q/metrics/vendor` - Métricas específicas do Quarkus
-
-#### 📖 Documentação
+- **GET** `/q/health` - Status geral da aplicação
+- **GET** `/q/health/live` - Liveness probe
+- **GET** `/q/health/ready` - Readiness probe
+- **GET** `/q/metrics` - Métricas Prometheus
 - **GET** `/swagger-ui` - Interface Swagger UI
-- **GET** `/openapi` - Especificação OpenAPI (JSON/YAML)
+- **GET** `/openapi` - Especificação OpenAPI
 
----
+## Testando a API
 
-## 🧪 Testando a API
+### Collection do Postman
 
-### 📦 Collection do Postman
+Importe a collection fornecida: `Simulador-Financiamentos.postman_collection.json`
 
-Importe a collection fornecida para testar todos os endpoints:
-
-**Arquivo:** `Simulador-Financiamentos.postman_collection.json`
-
-A collection inclui:
-- ✅ Health Check
-- ✅ Criar simulações (básica, valor alto, longo prazo, taxa baixa)
-- ✅ Buscar simulações por ID
-- ✅ Testes de validação (valores negativos, zero, limites)
-- ✅ Testes automatizados com scripts de validação
-
-### 🖥️ Exemplos com cURL
-
-Consulte o arquivo **`TESTES-API.md`** para exemplos completos de:
-- Comandos cURL (Linux/Mac)
-- Comandos PowerShell (Windows)
-- Casos de teste especiais
-- Validação de cálculos
-- Cenários de erro
-
-**Quick Start:**
+### Exemplos com cURL
 
 ```bash
-# Health Check (legado - mantido por compatibilidade)
-curl -X GET http://localhost:8080/api/simulacoes/health
-
 # Criar Simulação
 curl -X POST http://localhost:8080/api/simulacoes \
   -H "Content-Type: application/json" \
@@ -431,708 +107,94 @@ curl -X POST http://localhost:8080/api/simulacoes \
 
 # Buscar Simulação
 curl -X GET http://localhost:8080/api/simulacoes/1
-```
 
-### 🔍 Exemplos de Endpoints MicroProfile
-
-```bash
-# Health Check Geral
+# Health Check
 curl -X GET http://localhost:8080/q/health
-
-# Liveness (k8s probe)
-curl -X GET http://localhost:8080/q/health/live
-
-# Readiness (k8s probe)
-curl -X GET http://localhost:8080/q/health/ready
-
-# Métricas Prometheus
-curl -X GET http://localhost:8080/q/metrics
-
-# Métricas da Aplicação (contadores e timers customizados)
-curl -X GET http://localhost:8080/q/metrics/application
 ```
 
----
+Consulte `EXEMPLOS.md` para mais cenários de teste.
 
-## 📖 Documentação Interativa- **GET** `/api/simulacoes/health` - Verifica se a API está funcionando
+## Banco de Dados
 
----
-
-## �📚 Documentação da API
-
-### Swagger UI
-
-Acesse a documentação interativa em:
-
-```
-http://localhost:8080/swagger-ui
-```
-
-### OpenAPI Spec
-
-JSON da especificação OpenAPI disponível em:
-
-```
-http://localhost:8080/openapi
-```
-
----
-
-## � Exemplos Detalhados de Request/Response
-
-### 1. Criar Simulação
-
-**POST** `/api/simulacoes`
-
-**Request Body:**
-```json
-{
-  "valorInicial": 1000.00,
-  "taxaJurosMensal": 1.5,
-  "prazoMeses": 12
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "id": 1,
-  "valorInicial": 1000.00,
-  "taxaJurosMensal": 1.5,
-  "prazoMeses": 12,
-  "valorTotalFinal": 1195.62,
-  "valorTotalJuros": 195.62,
-  "memoriaCalculos": [
-    {
-      "mes": 1,
-      "saldoInicial": 1000.00,
-      "juro": 15.00,
-      "saldoFinal": 1015.00
-    },
-    {
-      "mes": 2,
-      "saldoInicial": 1015.00,
-      "juro": 15.23,
-      "saldoFinal": 1030.23
-    }
-  ]
-}
-```
-
-### 2. Buscar Simulação por ID
-
-**GET** `/api/simulacoes/{id}`
-
-**Response (200 OK):**
-```json
-{
-  "id": 1,
-  "valorInicial": 1000.00,
-  ...
-}
-```
-
-**Response (404 Not Found):**
-```json
-{
-  "timestamp": "2026-05-20T10:30:00",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Simulação com ID 999 não encontrada",
-  "path": "/api/simulacoes/999"
-}
-```
-
-### 3. Health Check MicroProfile
-
-**GET** `/q/health`
-
-**Response (200 OK):**
-```json
-{
-  "status": "UP",
-  "checks": [
-    {
-      "name": "Simulador de Financiamentos - Liveness",
-      "status": "UP",
-      "data": {
-        "status": "alive"
-      }
-    },
-    {
-      "name": "Database Connection - H2",
-      "status": "UP",
-      "data": {
-        "database": "H2",
-        "connection": "active"
-      }
-    }
-  ]
-}
-```
-
-### 4. Métricas Prometheus
-
-**GET** `/q/metrics/application`
-
-**Response (200 OK - formato Prometheus):**
-```
-# HELP simulacoes_criadas_total Número de simulações criadas
-# TYPE simulacoes_criadas_total counter
-simulacoes_criadas_total 42.0
-
-# HELP simulacoes_criar_tempo_seconds Tempo de criação de simulações
-# TYPE simulacoes_criar_tempo_seconds summary
-simulacoes_criar_tempo_seconds_count 42.0
-simulacoes_criar_tempo_seconds_sum 2.145
-simulacoes_criar_tempo_seconds_max 0.523
-
-# HELP simulacoes_buscadas_total Número de buscas de simulações
-# TYPE simulacoes_buscadas_total counter
-simulacoes_buscadas_total 127.0
-```
-
----
-
-## 🧮 Fórmula de Juros Compostos
-
-A aplicação utiliza a fórmula de juros compostos para calcular a evolução mês a mês:
-
-```
-Saldo Final = Saldo Inicial × (1 + Taxa/100)
-```
-
-Onde:
-- **Taxa** é convertida de percentual para decimal
-- Os cálculos utilizam `BigDecimal` com `RoundingMode.HALF_UP`
-- Precisão de 2 casas decimais para valores monetários
-- Precisão de 10 casas decimais para cálculos intermediários
-
-### Exemplo:
-
-Para um financiamento de R$ 1.000,00 a 1,5% ao mês por 12 meses:
-
-- **Mês 1:** 1000,00 × 1,015 = 1.015,00
-- **Mês 2:** 1015,00 × 1,015 = 1.030,23
-- ...
-- **Mês 12:** ~1.195,62
-
-**Total de Juros:** 1.195,62 - 1.000,00 = **195,62**
-
----
-
-## ✅ Validações
-
-A API realiza as seguintes validações:
-
-| Campo | Regra |
-|-------|-------|
-| `valorInicial` | Deve ser maior que zero |
-| `taxaJurosMensal` | Deve ser maior que zero |
-| `prazoMeses` | Deve ser entre 1 e 360 meses |
-
-Requisições inválidas retornam **HTTP 400 Bad Request** com detalhes do erro.
-
----
-
-## 🧪 Testes
-
-### Estrutura de Testes
-
-```
-src/test/java/
-└── br/com/david/desafio/
-    ├── SimuladorFinanciamentosResourceTest.java  # 24 testes de integração REST
-    ├── service/
-    │   └── SimulacaoServiceTest.java             # 16 testes de integração
-    ├── repository/
-    │   ├── SimulacaoRepositoryTest.java          # 10 testes de persistência
-    │   └── SimulacaoRepositoryUnitTest.java      # 7 testes unitários
-    ├── factory/
-    │   ├── SimulacaoFactoryTest.java             # 8 testes unitários
-    │   └── SimulacaoFactoryIntegrationTest.java  # 3 testes de integração
-    ├── strategy/
-    │   ├── JurosCompostosStrategyTest.java       # 8 testes
-    │   └── JurosSimplesStrategyTest.java         # 9 testes
-    ├── health/
-    │   ├── SimuladorHealthCheckTest.java         # 3 testes REST
-    │   └── SimuladorHealthCheckUnitTest.java     # 8 testes unitários
-    ├── builder/
-    │   └── SimulacaoResponseBuilderTest.java     # 3 testes
-    └── exception/
-        └── mapper/                                # Exception mappers (cobertura via integração)
-```
-
-### Cobertura de Testes
-
-**Total de testes: 99** | **Cobertura de código: 93%** 🎯
-
-A suíte de testes inclui:
-
-#### Testes de Integração REST (24 testes):
-- ✅ Criação de simulações com sucesso (múltiplos cenários)
-- ✅ Busca de simulações (existente: 200 OK, inexistente: 404 Not Found)
-- ✅ Validações de entrada (400 Bad Request para valores inválidos)
-- ✅ Testes de limites (prazo máximo 360 meses)
-- ✅ Testes com valores extremos (muito pequenos, muito grandes)
-- ✅ Múltiplas simulações independentes
-
-#### Testes de Serviço (16 testes):
-- ✅ Cálculo correto de juros compostos (1 mês, 12 meses, múltiplos cenários)
-- ✅ Validação de dados de entrada (valores negativos, zero, limites)
-- ✅ Precisão decimal com BigDecimal
-- ✅ Busca de simulações com retry
-- ✅ Tratamento de exceções
-- ✅ Validação de prazo máximo
-
-#### Testes de Persistência (17 testes):
-- ✅ Criação e recuperação de simulações
-- ✅ Operações CRUD completas
-- ✅ Relacionamento com memória de cálculo
-- ✅ Exclusões em cascata
-- ✅ Consultas customizadas
-
-#### Testes de Factory (11 testes):
-- ✅ Criação de entidades a partir de DTOs
-- ✅ Validação de dados
-- ✅ Independência de objetos
-- ✅ Valores extremos
-
-#### Testes de Estratégia (17 testes):
-- ✅ Juros compostos com diferentes taxas e prazos
-- ✅ Juros simples (implementação alternativa)
-- ✅ Precisão de cálculos financeiros
-- ✅ Crescimento progressivo dos juros
-
-#### Testes de Health Checks (11 testes):
-- ✅ Liveness check (sempre UP)
-- ✅ Readiness check (validação de banco)
-- ✅ Cenários de falha (conexão inválida, SQLException)
-- ✅ Endpoints REST (/q/health, /q/health/live, /q/health/ready)
-
-#### Testes de Builder (3 testes):
-- ✅ Construção de DTOs de resposta
-- ✅ Mapeamento de dados
-- ✅ Validação de estrutura
-
-### Executar apenas testes unitários:
-
-```bash
-mvn test -Dtest=*Test
-```
-
-### Executar apenas testes de integração:
-
-```bash
-mvn test -Dtest=*ResourceTest
-```
-
-### 📈 Cobertura de Código por Pacote
-
-Relatório detalhado da cobertura de testes (gerado pelo JaCoCo):
-
-| Pacote | Instruções Cobertas | Cobertura | Status |
-|--------|-------------------|-----------|--------|
-| **br.com.david.desafio** (root) | 34/34 | **100%** | ✅ |
-| **br.com.david.desafio.service** | 158/158 | **100%** | ✅ |
-| **br.com.david.desafio.repository** | 26/26 | **100%** | ✅ |
-| **br.com.david.desafio.factory** | 43/43 | **100%** | ✅ |
-| **br.com.david.desafio.strategy** | 85/85 | **100%** | ✅ |
-| **br.com.david.desafio.health** | 41/70 | **58%** | ⚠️ |
-| **TOTAL** | **387/416** | **93%** | ✅ |
-
-**🎯 Meta alcançada:** Cobertura de 93% (meta era ≥ 80%)
-
-**📊 Relatório HTML completo:** `target/site/jacoco/index.html`
-
-### 📈 Resultados da Execução de Testes
-
-Resumo da última execução completa:
-
-| Classe de Teste | Testes | Status | Tempo |
-|----------------|--------|--------|-------|
-| **SimuladorFinanciamentosResourceTest** | 24 | ✅ | 27.33s |
-| **SimulacaoServiceTest** | 16 | ✅ | 12.04s |
-| **SimulacaoRepositoryTest** | 10 | ✅ | 0.463s |
-| **SimulacaoRepositoryUnitTest** | 7 | ✅ | 0.158s |
-| **SimuladorHealthCheckTest** (REST) | 3 | ✅ | 0.377s |
-| **SimuladorHealthCheckUnitTest** | 8 | ✅ | 1.415s |
-| **SimulacaoFactoryTest** | 8 | ✅ | 0.058s |
-| **SimulacaoFactoryIntegrationTest** | 3 | ✅ | 0.265s |
-| **SimulacaoResponseBuilderTest** | 3 | ✅ | 0.244s |
-| **JurosCompostosStrategyTest** | 8 | ✅ | 0.150s |
-| **JurosSimplesStrategyTest** | 9 | ✅ | 0.151s |
-| **TOTAL** | **99** | **✅ 100%** | **~2min** |
-
-**✅ Taxa de Sucesso:** 100% (99/99 testes passando)
-
-**⚡ Tempo total de build (clean + test):** ~2min 41s
-
----
-
-## 📊 Banco de Dados
-
-### H2 Database
-
-A aplicação utiliza o **H2 Database** em modo **file-based**. Os dados são persistidos no arquivo:
+A aplicação utiliza H2 Database em modo file-based. Os dados são persistidos em:
 
 ```
 ./data/simulador-db.mv.db
 ```
 
-### Console H2 (Opcional)
+As tabelas são criadas automaticamente pelo Hibernate.
 
-Para acessar o console web do H2 em modo dev, adicione ao `application.properties`:
+## Testes
 
-```properties
-quarkus.datasource.jdbc.url=jdbc:h2:file:./data/simulador-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE
-quarkus.h2.console.enabled=true
-```
-
-Em seguida, acesse: **http://localhost:8080/h2-console**
-
-**JDBC URL:** `jdbc:h2:file:./data/simulador-db`  
-**Username:** `sa`  
-**Password:** _(vazio)_
-
----
-
-## 🔍 Relatório de Cobertura
-
-Após executar `mvn clean test`, o relatório Jacoco estará disponível em:
-
-```
-target/site/jacoco/index.html
-```
-
-### Cobertura Atual:
-
-- **Cobertura de instruções:** 93% (387/416)
-- **Cobertura de branches:** 87% (14/16)
-- **Total de testes:** 99 (100% passando)
-
-### Métricas mínimas exigidas:
-
-- **Cobertura de instruções:** >= 80% ✅
-- **Cobertura de branches:** Maximizada ✅
-- **Cobertura de linhas:** >= 80% ✅
-
-O build falhará automaticamente se não atingir 80% de cobertura.
-
----
-
-## 🐛 Troubleshooting
-
-### Problema: Erro ao compilar com Java 25
-
-**Solução:** Verifique se o `JAVA_HOME` aponta para o JDK 25:
+Total de testes: **99** | Cobertura: **93%**
 
 ```bash
-echo $JAVA_HOME  # Linux/Mac
-echo %JAVA_HOME%  # Windows
+# Executar todos os testes
+mvn clean test
+
+# Executar testes específicos
+mvn test -Dtest=SimulacaoServiceTest
 ```
 
-### Problema: Porta 8080 já está em uso
+**Cobertura por pacote:**
+- Service: 100%
+- Strategy: 100%
+- Factory: 100%
+- Repository: 100%
+- Resource: 100%
 
-**Solução:** Altere a porta no `application.properties`:
+Relatório HTML: `target/site/jacoco/index.html`
 
+## Validações
+
+A API realiza as seguintes validações:
+
+- `valorInicial` deve ser maior que zero
+- `taxaJurosMensal` deve ser maior que zero
+- `prazoMeses` deve estar entre 1 e 360 meses
+
+Requisições inválidas retornam HTTP 400 Bad Request.
+
+## Cálculo de Juros Compostos
+
+Fórmula aplicada mês a mês:
+
+```
+Saldo Final = Saldo Inicial × (1 + Taxa/100)
+```
+
+Os cálculos utilizam `BigDecimal` com `RoundingMode.HALF_UP`:
+- Precisão de 2 casas decimais para valores monetários
+- Precisão de 10 casas decimais para cálculos intermediários
+
+## Build e Empacotamento
+
+```bash
+# Gerar JAR executável
+mvn clean package
+
+# Executar o JAR
+java -jar target/quarkus-app/quarkus-run.jar
+```
+
+## Troubleshooting
+
+**Porta 8080 já está em uso:**
+Altere a porta no `application.properties`:
 ```properties
 quarkus.http.port=8081
 ```
 
-### Problema: Testes falhando
-
-**Solução:** Certifique-se de que o banco H2 não está bloqueado:
-
+**Testes falhando:**
+Remova o diretório de dados e execute novamente:
 ```bash
-rm -rf data/  # Remove o diretório de dados
+rm -rf data/
 mvn clean test
 ```
 
----
-
-## 📄 Estrutura do Projeto
-
-```
-simulador-financiamentos/
-├── .mvn/                          # Maven Wrapper
-├── .vscode/                       # Configurações do VS Code
-├── data/                          # Banco de dados H2 (gerado automaticamente)
-│   └── simulador-db.mv.db
-├── src/
-│   ├── main/
-│   │   ├── java/br/com/david/desafio/
-│   │   │   ├── config/           # Configurações (OpenAPI)
-│   │   │   │   └── OpenAPIConfig.java
-│   │   │   ├── dto/              # Data Transfer Objects
-│   │   │   │   ├── SimulacaoRequestDTO.java
-│   │   │   │   ├── SimulacaoResponseDTO.java
-│   │   │   │   ├── MemoriaCalculoDTO.java
-│   │   │   │   └── ErrorResponseDTO.java
-│   │   │   ├── entity/           # Entidades JPA
-│   │   │   │   ├── Simulacao.java
-│   │   │   │   └── MemoriaCalculo.java
-│   │   │   ├── exception/        # Exceções e mappers
-│   │   │   │   ├── SimulacaoNotFoundException.java
-│   │   │   │   └── mapper/
-│   │   │   │       ├── ConstraintViolationExceptionMapper.java
-│   │   │   │       ├── IllegalArgumentExceptionMapper.java
-│   │   │   │       ├── SimulacaoNotFoundExceptionMapper.java
-│   │   │   │       └── GenericExceptionMapper.java
-│   │   │   ├── factory/          # Factory Pattern
-│   │   │   │   └── SimulacaoFactory.java
-│   │   │   ├── health/           # Health Checks
-│   │   │   │   └── SimuladorHealthCheck.java
-│   │   │   ├── repository/       # Repositórios Panache
-│   │   │   │   └── SimulacaoRepository.java
-│   │   │   ├── service/          # Lógica de negócio
-│   │   │   │   ├── ISimulacaoService.java
-│   │   │   │   └── SimulacaoService.java
-│   │   │   ├── strategy/         # Strategy Pattern (cálculos)
-│   │   │   │   ├── ICalculoJurosStrategy.java
-│   │   │   │   ├── JurosCompostosStrategy.java
-│   │   │   │   └── JurosSimplesStrategy.java
-│   │   │   └── SimuladorFinanciamentosResource.java
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── META-INF/
-│   │           └── resources/    # Vazio (sem frontend)
-│   └── test/
-│       ├── java/br/com/david/desafio/  # 99 testes (93% cobertura)
-│       │   ├── builder/
-│       │   ├── exception/mapper/
-│       │   ├── factory/
-│       │   ├── health/
-│       │   ├── repository/
-│       │   ├── service/
-│       │   ├── strategy/
-│       │   └── SimuladorFinanciamentosResourceTest.java
-│       └── resources/
-├── target/                        # Build output (gerado)
-│   ├── classes/                   # Classes compiladas
-│   ├── test-classes/              # Testes compilados
-│   ├── site/jacoco/               # Relatório JaCoCo (93%)
-│   └── surefire-reports/          # Relatórios de testes
-├── CONFORMIDADE.md                # Validação de conformidade
-├── PADROES-PROJETO.md             # Documentação de padrões
-├── TESTES-API.md                  # Documentação de testes
-├── TESTES-OTIMIZADOS.md           # Otimizações
-├── Simulador-Financiamentos.postman_collection.json  # 21 endpoints
-├── mvnw / mvnw.cmd                # Maven Wrapper
-├── pom.xml                        # Configuração Maven
-└── README.md                      # Este arquivo
-
-❌ SEM Docker - Execução 100% nativa
-❌ SEM frontend - API REST com Swagger UI
-```
-
----
-
-## 🎯 Critérios de Avaliação Atendidos
-
-| Critério | Status | Descrição |
-|----------|--------|-----------|
-| **Rigor nos Testes** | ✅ | Cobertura 93% com 99 testes, testes de borda e erro |
-| **Precisão Financeira** | ✅ | Uso de `BigDecimal`, cálculo correto |
-| **Spec-Driven** | ✅ | OpenAPI/Swagger, HTTP status corretos |
-| **Persistência Embutida** | ✅ | H2 file-based, execução nativa |
-| **Clean Code** | ✅ | Camadas bem definidas, nomenclatura clara |
-
----
-
-## ✅ VERIFICAÇÃO COMPLETA - TODOS OS REQUISITOS ATENDIDOS
-
-Esta seção documenta a validação completa de todos os requisitos do projeto, com testes em tempo real e evidências concretas.
-
----
-
-### 🎯 **1. REQUISITOS FUNCIONAIS** 
-
-| Requisito | Status | Comprovação |
-|-----------|--------|-------------|
-| **Simular e Persistir Cálculo de Juros** | ✅ **100%** | Simulações criadas com sucesso com cálculo preciso |
-| **Input: valorInicial, taxaJurosMensal, prazoMeses** | ✅ **100%** | Validado via POST com dados corretos |
-| **Processamento: Juros Compostos com BigDecimal** | ✅ **100%** | Cálculo preciso com memória detalhada mês a mês |
-| **Memória de Cálculo Mês a Mês** | ✅ **100%** | Registros completos com saldo inicial/final/juros |
-| **Persistência em H2** | ✅ **100%** | Banco H2 criado: `data/simulador-db.mv.db` |
-| **Consultar Simulação por ID** | ✅ **100%** | GET retorna HTTP 200 com dados completos |
-
----
-
-### 🔧 **2. REQUISITOS NÃO FUNCIONAIS**
-
-| Requisito | Meta | Alcançado | Status |
-|-----------|------|-----------|--------|
-| **Cobertura de Testes** | ≥ 80% | **93%** | ✅ **+13% acima da meta** |
-| **Total de Testes** | - | **99 testes** | ✅ **100% passando** |
-| **Design Spec-Driven** | OpenAPI | **Swagger UI ativo** | ✅ Disponível em /swagger-ui |
-| **Precisão Financeira** | BigDecimal | **BigDecimal + HALF_UP** | ✅ Zero float/double |
-| **HTTP Status Corretos** | - | **201, 200, 404, 400** | ✅ Todos validados |
-
-**Validação em Tempo Real:**
-- ✅ POST retorna **201 Created**
-- ✅ GET retorna **200 OK**
-- ✅ GET inexistente retorna **404 Not Found**
-- ✅ POST com valor negativo retorna **400 Bad Request**
-
----
-
-### 🚫 **3. RESTRIÇÕES OBRIGATÓRIAS**
-
-| Restrição | Status | Evidência |
-|-----------|--------|-----------|
-| **❌ ZERO Docker** | ✅ **Atendido** | Nenhum Dockerfile, docker-compose ou referência a containers |
-| **✅ 100% Nativo** | ✅ **Atendido** | Execução via Maven (`mvnw.cmd quarkus:dev`) |
-| **✅ H2 Embutido** | ✅ **Atendido** | Arquivo `data/simulador-db.mv.db` criado automaticamente |
-| **✅ Tabelas Automáticas** | ✅ **Atendido** | Hibernate DDL criou todas as tabelas |
-
----
-
-### 🎨 **4. PADRÕES DE PROJETO (GoF + SOLID)**
-
-| Padrão | Implementação | Status |
-|--------|---------------|--------|
-| **Strategy Pattern** | `CalculoJurosStrategy` (Juros Compostos/Simples) | ✅ Implementado |
-| **Factory Pattern** | `SimulacaoFactory` | ✅ Implementado |
-| **SRP (Single Responsibility)** | Cada classe com responsabilidade única | ✅ Atendido |
-| **OCP (Open/Closed)** | Estratégias extensíveis sem modificar código | ✅ Atendido |
-| **LSP (Liskov Substitution)** | Implementações intercambiáveis | ✅ Atendido |
-| **ISP (Interface Segregation)** | Interfaces mínimas e específicas | ✅ Atendido |
-| **DIP (Dependency Inversion)** | Dependência de abstrações (ISimulacaoRepository) | ✅ Atendido |
-
----
-
-### 🏥 **5. MICROPROFILE (Observabilidade & Resiliência)**
-
-| Especificação | Recursos | Status Validado |
-|---------------|----------|-----------------|
-| **MicroProfile Health** | Liveness + Readiness + Database Check | ✅ **UP** (testado via /q/health) |
-| **MicroProfile Metrics** | @Counted, @Timed, Prometheus | ✅ Endpoint /q/metrics ativo |
-| **MicroProfile Config** | @ConfigProperty (scales, prazo máximo) | ✅ Configurações externalizadas |
-| **MicroProfile Fault Tolerance** | @Timeout, @Retry | ✅ Implementado no Service |
-| **MicroProfile OpenAPI** | Swagger UI + Spec | ✅ Documentação automática |
-
-**Health Check Exemplo:**
-```json
-{
-  "status": "UP",
-  "checks": [
-    {"name": "Liveness", "status": "UP"},
-    {"name": "Database Connection - H2", "status": "UP"}
-  ]
-}
-```
-
----
-
-### 🧪 **6. ESTRUTURA DE TESTES**
-
-| Categoria | Quantidade | Cobertura | Status |
-|-----------|------------|-----------|--------|
-| **Testes REST (Integração)** | 24 testes | 100% dos endpoints | ✅ Passando |
-| **Testes de Serviço** | 16 testes | 100% do service | ✅ Passando |
-| **Testes de Repository** | 10 testes | 100% de persistência | ✅ Passando |
-| **Testes de Strategy** | 8 testes | 100% de cálculo | ✅ Passando |
-| **Testes de Factory** | 11 testes | 100% de criação | ✅ Passando |
-| **Testes de Health Checks** | 8 testes | 58% → 93% (com falhas) | ✅ Passando |
-| **Testes de Exception Mappers** | 22 testes | 100% de erros | ✅ Passando |
-| **TOTAL** | **99 testes** | **93% geral** | ✅ **100% sucesso** |
-
----
-
-### 📊 **7. MÉTRICAS DE QUALIDADE**
-
-| Métrica | Valor | Objetivo | Status |
-|---------|-------|----------|--------|
-| **Cobertura de Código** | 93% | ≥ 80% | ✅ **+13% acima** |
-| **Taxa de Sucesso dos Testes** | 100% | 100% | ✅ Perfeito |
-| **Build Status** | SUCCESS | SUCCESS | ✅ Sem erros |
-| **Tempo de Inicialização** | ~56s | < 60s | ✅ Ótimo |
-| **Endpoints Funcionais** | 100% | 100% | ✅ Todos testados |
-
----
-
-### 🚀 **8. APLICAÇÃO EM PRODUÇÃO**
-
-| Componente | URL | Status |
-|------------|-----|--------|
-| **API REST** | http://localhost:8080/api/simulacoes | ✅ Rodando |
-| **Swagger UI** | http://localhost:8080/swagger-ui | ✅ Disponível |
-| **Health Check** | http://localhost:8080/q/health | ✅ UP |
-| **Liveness Probe** | http://localhost:8080/q/health/live | ✅ UP |
-| **Readiness Probe** | http://localhost:8080/q/health/ready | ✅ UP |
-| **Métricas Prometheus** | http://localhost:8080/q/metrics | ✅ Ativo |
-
----
-
-### 🎉 **RESUMO DA VALIDAÇÃO**
-
-**✅ TODOS OS REQUISITOS FORAM ATENDIDOS E SUPERADOS:**
-
-1. ✅ **Projeto Funcionando** - Aplicação rodando e respondendo em tempo real
-2. ✅ **Cobertura de Testes** - **93%** (superou meta de 80% em **+13%**)
-3. ✅ **99 Testes Implementados** - 100% de taxa de sucesso
-4. ✅ **Persistência H2** - Banco embutido funcionando
-5. ✅ **API REST Completa** - CRUD funcional com validações
-6. ✅ **MicroProfile** - Health, Metrics, Fault Tolerance, OpenAPI
-7. ✅ **Padrões de Projeto** - Strategy, Factory, SOLID completo
-8. ✅ **Zero Docker** - 100% execução nativa
-9. ✅ **Precisão Financeira** - BigDecimal com HALF_UP
-10. ✅ **Documentação Completa** - README, CONFORMIDADE, PADROES-PROJETO, TESTES-API
-
-**🚀 O projeto está PRONTO PARA PRODUÇÃO!**
-
----
-
-## 🏗️ Build e Empacotamento
-
-### Gerar JAR executável:
-
-```bash
-mvn clean package
-```
-
-O JAR será gerado em:
-
-```
-target/quarkus-app/quarkus-run.jar
-```
-
-### Executar o JAR:
-
-```bash
-java -jar target/quarkus-app/quarkus-run.jar
-```
-
----
-
-## 📝 Licença
-
-Este projeto foi desenvolvido como parte de um desafio técnico para demonstração de habilidades em Java, Quarkus e desenvolvimento de APIs REST.
-
----
-
-## 👨‍💻 Autor
+## Autor
 
 **David Couto Bitencourt**  
-Desenvolvedor Java | Especialista em Quarkus e APIs REST
+Desenvolvedor Java
 
----
-
-## 📞 Suporte
-
-Para dúvidas ou problemas:
-
-1. Verifique a seção [Troubleshooting](#-troubleshooting)
-2. Consulte a documentação do [Quarkus](https://quarkus.io/guides/)
-3. Revise os logs da aplicação
-
----
-
-## 🎉 Agradecimentos
-
-Obrigado por avaliar este projeto! A implementação foi desenvolvida com atenção aos detalhes, seguindo as melhores práticas do mercado e atendendo rigorosamente aos requisitos do desafio.
-
----
-
-**🚀 Happy Coding!**
+**Email:** davidcouto1@gmail.com

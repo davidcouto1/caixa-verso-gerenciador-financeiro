@@ -24,14 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service responsável pela lógica de negócio das simulações de financiamento.
- * Implementa ISimulacaoService seguindo o Dependency Inversion Principle (SOLID).
- * 
- * Aplica padrões:
- * - Strategy Pattern: Para diferentes cálculos de juros
- * - Factory Pattern: Para criação de entidades
- * - Builder Pattern: Para construção de DTOs
- * - Dependency Inversion: Depende de abstrações (interfaces)
+ * Service para lógica de negócio das simulações de financiamento.
  */
 @ApplicationScoped
 public class SimulacaoService implements ISimulacaoService {
@@ -47,15 +40,12 @@ public class SimulacaoService implements ISimulacaoService {
     @ConfigProperty(name = "simulador.prazo.maximo.meses", defaultValue = "360")
     int prazoMaximoMeses;
 
-    // Dependency Inversion: Depende da interface, não da implementação
     @Inject
     ISimulacaoRepository simulacaoRepository;
     
-    // Strategy Pattern: Injeção da estratégia de cálculo
     @Inject
     CalculoJurosStrategy calculoJurosStrategy;
     
-    // Factory Pattern: Para criação de entidades
     @Inject
     SimulacaoFactory simulacaoFactory;
 
@@ -68,10 +58,9 @@ public class SimulacaoService implements ISimulacaoService {
         
         validarDadosEntrada(requestDTO);
         
-        // Factory Pattern: Cria a entidade
         Simulacao simulacao = simulacaoFactory.criarSimulacao(requestDTO);
         
-        // Strategy Pattern: Calcula os juros
+        // Calcula usando strategy pattern - facilita adicionar novos tipos de juros no futuro
         calculoJurosStrategy.calcular(simulacao, scaleMonetario, scaleIntermediario);
         
         simulacaoRepository.persist(simulacao);
@@ -99,10 +88,6 @@ public class SimulacaoService implements ISimulacaoService {
         return converterParaDTO(simulacao);
     }
 
-    /**
-     * Valida os dados de entrada da simulação.
-     * Aplica o Single Responsibility Principle.
-     */
     private void validarDadosEntrada(SimulacaoRequestDTO requestDTO) {
         if (requestDTO.getValorInicial().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("O valor inicial deve ser maior que zero");
@@ -116,14 +101,12 @@ public class SimulacaoService implements ISimulacaoService {
             throw new IllegalArgumentException("O prazo deve ser maior que zero");
         }
         
+        // Valida prazo máximo - configurado em application.properties (default 360 meses = 30 anos)
         if (requestDTO.getPrazoMeses() > prazoMaximoMeses) {
             throw new IllegalArgumentException("O prazo máximo é de " + prazoMaximoMeses + " meses");
         }
     }
 
-    /**
-     * Converte a entidade para DTO usando o Builder Pattern.
-     */
     private SimulacaoResponseDTO converterParaDTO(Simulacao simulacao) {
         List<MemoriaCalculoDTO> memoriaCalculosDTO = simulacao.getMemoriaCalculos().stream()
             .map(memoria -> new MemoriaCalculoDTO(

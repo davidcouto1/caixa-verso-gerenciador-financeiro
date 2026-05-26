@@ -7,14 +7,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * Implementação da estratégia de cálculo de juros compostos.
+ * Cálculo de juros compostos.
  * Fórmula: Saldo Final = Saldo Inicial × (1 + Taxa/100)
- * 
- * Padrão GoF: Strategy Pattern (Implementação Concreta)
- * Nota: NÃO usa @ApplicationScoped pois a instância é controlada por CalculoJurosConfig.
- * 
- * @author David
- * @since 1.0
  */
 public class JurosCompostosStrategy implements CalculoJurosStrategy {
     
@@ -29,10 +23,10 @@ public class JurosCompostosStrategy implements CalculoJurosStrategy {
         
         simulacao.getMemoriaCalculos().clear();
         
+        // Calcula mês a mês aplicando juros sobre o saldo
         for (int mes = 1; mes <= simulacao.getPrazoMeses(); mes++) {
             BigDecimal saldoInicial = saldoAtual;
-            BigDecimal jurosMes = saldoInicial.multiply(taxaDecimal)
-                    .setScale(scaleMonetario, ROUNDING_MODE);
+            BigDecimal jurosMes = saldoInicial.multiply(taxaDecimal).setScale(scaleMonetario, ROUNDING_MODE);
             
             saldoAtual = saldoInicial.multiply(fatorJuros)
                     .setScale(scaleMonetario, ROUNDING_MODE);

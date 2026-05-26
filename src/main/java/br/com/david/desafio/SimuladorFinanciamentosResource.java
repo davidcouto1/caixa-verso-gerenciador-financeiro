@@ -26,8 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Resource REST para gerenciar simulações de financiamento.
- * Aplica Dependency Inversion Principle: Depende da interface ISimulacaoService.
+ * REST API para simulações de financiamento.
  */
 @Path("/api/simulacoes")
 @Tag(name = "Simulações", description = "API para simulação de financiamentos com juros compostos")
@@ -35,16 +34,10 @@ public class SimuladorFinanciamentosResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SimuladorFinanciamentosResource.class);
 
-    // Dependency Inversion: Depende da interface, não da implementação
     @Inject
     ISimulacaoService simulacaoService;
 
-    /**
-     * Cria uma nova simulação de financiamento.
-     *
-     * @param requestDTO Dados de entrada da simulação
-     * @return Simulação criada com todos os cálculos
-     */
+    // TODO: considerar adicionar paginação quando tiver muitas simulações no banco
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
