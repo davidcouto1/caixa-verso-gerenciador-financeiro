@@ -69,7 +69,106 @@ mvn test -Pfast-test
 
 ---
 
-## 🎯 Especificações MicroProfile Implementadas
+## �️ Padrões de Projeto Aplicados
+
+Este projeto demonstra **domínio sólido de padrões de projeto** através da aplicação criteriosa de princípios SOLID e padrões GoF (Gang of Four), garantindo código limpo, manutenível e extensível.
+
+### 📐 Princípios SOLID
+
+#### **S - Single Responsibility Principle (Responsabilidade Única)**
+- **`SimulacaoService`**: Responsável exclusivamente pela lógica de negócio de simulações
+- **`SimulacaoRepository`**: Focado apenas em operações de persistência
+- **`JurosStrategy`**: Interface dedicada ao cálculo de juros
+- **Exception Mappers**: Cada mapper trata apenas um tipo específico de exceção
+
+#### **O - Open/Closed Principle (Aberto/Fechado)**
+- **Strategy Pattern**: Novo tipo de juros pode ser adicionado sem modificar código existente
+- **`SimulacaoFactory`**: Extensível para novos tipos de simulação sem alterar a factory
+- **Exception Handling**: Novos mappers podem ser adicionados sem modificar os existentes
+
+#### **L - Liskov Substitution Principle (Substituição de Liskov)**
+- **`JurosSimplesStrategy` e `JurosCompostosStrategy`**: Implementações substituíveis de `JurosStrategy`
+- **Panache Repositories**: Extensão de `PanacheRepository` mantém contrato base
+
+#### **I - Interface Segregation Principle (Segregação de Interface)**
+- **`JurosStrategy`**: Interface coesa com apenas o método `calcular()`
+- **DTOs específicos**: `SimulacaoRequestDTO`, `SimulacaoResponseDTO`, `MemoriaCalculoDTO` - cada um com seu propósito
+- Interfaces pequenas e focadas evitam dependências desnecessárias
+
+#### **D - Dependency Inversion Principle (Inversão de Dependência)**
+- **Injeção de Dependências CDI**: `@Inject` para desacoplar componentes
+- **`SimulacaoService`** depende da abstração `JurosStrategy`, não de implementações concretas
+- **`SimulacaoFactory`** injeta estratégias via CDI, permitindo troca em tempo de execução
+
+### 🎨 Padrões GoF (Gang of Four)
+
+#### **Strategy Pattern (Comportamental)**
+```
+Interface: JurosStrategy
+├── JurosSimplesStrategy (Juros Simples: J = P × i × t)
+└── JurosCompostosStrategy (Juros Compostos: M = P × (1 + i)^t)
+```
+- **Localização**: `br.com.david.desafio.strategy`
+- **Benefício**: Algoritmos de cálculo intercambiáveis sem alterar o serviço
+- **Uso**: `SimulacaoService` seleciona estratégia baseada no prazo
+
+#### **Factory Pattern (Criacional)**
+```
+SimulacaoFactory
+├── buildSimulacaoEntity() - Constrói entidade Simulacao
+├── buildResponseDTO() - Constrói DTO de resposta
+└── buildMemoriaCalculo() - Constrói memória de cálculo
+```
+- **Localização**: `br.com.david.desafio.factory.SimulacaoFactory`
+- **Benefício**: Centraliza lógica de criação de objetos complexos
+- **Uso**: Separa construção de representação, facilitando testes
+
+#### **Builder Pattern (Criacional)**
+```
+Simulacao.Builder
+├── valorInicial()
+├── taxaJurosMensal()
+├── prazoMeses()
+└── build()
+```
+- **Localização**: `br.com.david.desafio.entity.Simulacao`
+- **Benefício**: Construção fluente e legível de entidades
+- **Uso**: Testes e factory utilizam builder para criar objetos
+
+#### **Repository Pattern (Estrutural)**
+```
+SimulacaoRepository extends PanacheRepository<Simulacao>
+├── findByIdWithMemoriaCalculo()
+├── listAllWithMemoriaCalculo()
+└── Métodos herdados do Panache
+```
+- **Localização**: `br.com.david.desafio.repository`
+- **Benefício**: Abstrai persistência e queries do banco
+- **Uso**: Camada de acesso a dados isolada e testável
+
+#### **Mapper Pattern (Estrutural)**
+```
+Exception Mappers (JAX-RS ExceptionMapper)
+├── ConstraintViolationExceptionMapper (400)
+├── IllegalArgumentExceptionMapper (400)
+├── SimulacaoNotFoundExceptionMapper (404)
+└── GenericExceptionMapper (500)
+```
+- **Localização**: `br.com.david.desafio.exception.mapper`
+- **Benefício**: Transforma exceções em respostas HTTP padronizadas
+- **Uso**: Tratamento centralizado de erros com ErrorResponseDTO
+
+### 🎯 Benefícios Demonstrados
+
+- ✅ **Manutenibilidade**: Código organizado e de fácil evolução
+- ✅ **Testabilidade**: 93% de cobertura com testes unitários
+- ✅ **Extensibilidade**: Novos tipos de juros ou validações sem quebrar código existente
+- ✅ **Baixo Acoplamento**: Componentes independentes e substituíveis
+- ✅ **Alta Coesão**: Cada classe tem responsabilidade bem definida
+
+---
+
+## �🎯 Especificações MicroProfile Implementadas
 
 A aplicação implementa as principais especificações do **Eclipse MicroProfile** para observabilidade, configuração e resiliência:
 

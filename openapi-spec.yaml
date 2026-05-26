@@ -1,0 +1,414 @@
+---
+openapi: 3.1.0
+components:
+  schemas:
+    ErrorResponseDTO:
+      description: Estrutura padronizada de resposta de erro da API
+      type: object
+      properties:
+        timestamp:
+          $ref: "#/components/schemas/LocalDateTime"
+          description: Data e hora em que o erro ocorreu (ISO 8601)
+          type: string
+          examples:
+          - 2026-05-25T19:00:00
+        status:
+          type: integer
+          format: int32
+          description: Código HTTP do erro
+          examples:
+          - 400
+        error:
+          type: string
+          description: Descrição resumida do tipo de erro
+          examples:
+          - Bad Request
+        message:
+          type: string
+          description: Mensagem detalhada do erro
+          examples:
+          - Validation failed
+        path:
+          type: string
+          description: Caminho da requisição que gerou o erro
+          examples:
+          - /api/simulacoes
+        errors:
+          type: array
+          items:
+            type: string
+          description: Lista de erros específicos de validação (quando aplicável)
+          examples:
+          - - O valor inicial deve ser maior que zero
+    LocalDateTime:
+      type: string
+      format: date-time
+    MemoriaCalculoDTO:
+      description: Detalhamento da evolução financeira em um mês específico do financiamento
+      type: object
+      properties:
+        mes:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Número do mês no período do financiamento
+          examples:
+          - 1
+        saldoInicial:
+          type: number
+          description: Saldo devedor no início do mês (antes dos juros)
+          format: decimal
+          examples:
+          - 1000.0
+        juro:
+          type: number
+          description: Valor dos juros compostos aplicados no mês
+          format: decimal
+          examples:
+          - 15.0
+        saldoFinal:
+          type: number
+          description: Saldo devedor no final do mês (após aplicação dos juros)
+          format: decimal
+          examples:
+          - 1015.0
+    SimulacaoRequestDTO:
+      description: Dados de entrada para simular um financiamento
+      type: object
+      required:
+      - valorInicial
+      - taxaJurosMensal
+      - prazoMeses
+      properties:
+        valorInicial:
+          type: number
+          minimum: 0.01
+          description: Valor principal do financiamento em reais
+          format: decimal
+          examples:
+          - 1000.0
+        taxaJurosMensal:
+          type: number
+          minimum: 0.01
+          description: "Taxa de juros mensal em percentual (ex: 1.5 para 1,5%)"
+          format: decimal
+          examples:
+          - 1.5
+        prazoMeses:
+          type: integer
+          format: int32
+          maximum: 360
+          minimum: 1
+          description: "Prazo do financiamento em meses (máximo: 360 meses ou 30 anos)"
+          examples:
+          - 12
+    SimulacaoResponseDTO:
+      description: Resultado completo da simulação de financiamento com memória de
+        cálculo
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador único da simulação no banco de dados
+          examples:
+          - 1
+        valorInicial:
+          type: number
+          description: Valor principal do financiamento em reais
+          format: decimal
+          examples:
+          - 1000.0
+        taxaJurosMensal:
+          type: number
+          description: Taxa de juros mensal em percentual aplicada
+          format: decimal
+          examples:
+          - 1.5
+        prazoMeses:
+          type: integer
+          format: int32
+          description: Prazo total do financiamento em meses
+          examples:
+          - 12
+        valorTotalFinal:
+          type: number
+          description: Valor total ao final do financiamento (principal + juros)
+          format: decimal
+          examples:
+          - 1195.63
+        valorTotalJuros:
+          type: number
+          description: Valor total de juros pagos durante todo o período
+          format: decimal
+          examples:
+          - 195.63
+        memoriaCalculos:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemoriaCalculoDTO"
+          description: Detalhamento mês a mês da evolução do financiamento com juros
+            compostos
+info:
+  contact:
+    email: davidcouto1@gmail.com
+    name: David Couto Bitencourt - Desenvolvedor Java
+  description: |
+    API REST para simulação de financiamentos com cálculo de juros compostos.
+
+    ## Características:
+    - ✅ Cálculo preciso de juros compostos usando BigDecimal
+    - ✅ Memória de cálculo detalhada mês a mês
+    - ✅ Persistência em H2 Database embutido
+    - ✅ Validação completa de dados de entrada
+    - ✅ Tratamento de erros padronizado
+    - ✅ Observabilidade com MicroProfile Health e Metrics
+
+    ## Fórmula de Juros Compostos:
+    ```
+    Saldo Final = Saldo Inicial × (1 + Taxa/100)
+    ```
+
+    ## Validações:
+    - Valor inicial: maior que zero
+    - Taxa de juros: maior que zero
+    - Prazo: entre 1 e 360 meses
+
+    ## Tecnologias:
+    - Java 25
+    - Quarkus 3.35.4
+    - H2 Database (embedded)
+    - MicroProfile OpenAPI
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  title: Simulador de Financiamentos API
+  version: 1.0.0
+tags:
+- name: Simulações
+  description: API para simulação de financiamentos com juros compostos
+- name: Health
+  description: Endpoints de monitoramento da saúde da aplicação
+- name: Metrics
+  description: Endpoints de métricas e observabilidade
+servers:
+- url: http://localhost:8080
+  description: Servidor de Desenvolvimento
+- url: https://api.simuladorfinanceiro.com
+  description: Servidor de Produção
+paths:
+  /api/simulacoes:
+    post:
+      summary: Criar nova simulação de financiamento
+      description: |
+        Cria uma nova simulação calculando juros compostos mês a mês.
+
+        O cálculo utiliza a fórmula: **Saldo Final = Saldo Inicial × (1 + Taxa/100)**
+
+        A API retorna:
+        - ID da simulação criada
+        - Valores totais (final e juros)
+        - Memória de cálculo completa mês a mês
+      tags:
+      - Simulações
+      requestBody:
+        description: Dados para simular o financiamento
+        content:
+          application/json:
+            examples:
+              Financiamento Básico:
+                summary: Simulação de R$ 1.000 por 12 meses
+                description: "Exemplo básico de financiamento de mil reais a 1,5%\
+                  \ ao mês"
+                value:
+                  valorInicial: 1000.0
+                  taxaJurosMensal: 1.5
+                  prazoMeses: 12
+              Financiamento Alto Valor:
+                summary: Simulação de R$ 100.000 por 24 meses
+                description: "Financiamento de alto valor com taxa de 2,5% ao mês"
+                value:
+                  valorInicial: 100000.0
+                  taxaJurosMensal: 2.5
+                  prazoMeses: 24
+              Financiamento Longo Prazo:
+                summary: Simulação de R$ 50.000 por 120 meses
+                description: "Financiamento de longo prazo (10 anos) com taxa de 1,0%\
+                  \ ao mês"
+                value:
+                  valorInicial: 50000.0
+                  taxaJurosMensal: 1.0
+                  prazoMeses: 120
+              Financiamento Taxa Baixa:
+                summary: "Simulação de R$ 5.000 com taxa de 0,5%"
+                description: Financiamento com taxa de juros baixa por 6 meses
+                value:
+                  valorInicial: 5000.0
+                  taxaJurosMensal: 0.5
+                  prazoMeses: 6
+            schema:
+              $ref: "#/components/schemas/SimulacaoRequestDTO"
+        required: true
+      responses:
+        "201":
+          description: Simulação criada com sucesso
+          content:
+            application/json:
+              examples:
+                Simulação Criada:
+                  summary: Exemplo de resposta completa
+                  description: "Resposta com ID, valores calculados e memória mês\
+                    \ a mês"
+                  value:
+                    id: 1
+                    valorInicial: 1000.0
+                    taxaJurosMensal: 1.5
+                    prazoMeses: 12
+                    valorTotalFinal: 1195.63
+                    valorTotalJuros: 195.63
+                    memoriaCalculos:
+                    - mes: 1
+                      saldoInicial: 1000.0
+                      juro: 15.0
+                      saldoFinal: 1015.0
+                    - mes: 2
+                      saldoInicial: 1015.0
+                      juro: 15.23
+                      saldoFinal: 1030.23
+                    - mes: 12
+                      saldoInicial: 1177.96
+                      juro: 17.67
+                      saldoFinal: 1195.63
+              schema:
+                $ref: "#/components/schemas/SimulacaoResponseDTO"
+        "400":
+          description: Dados de entrada inválidos
+          content:
+            application/json:
+              examples:
+                Erro de Validação:
+                  summary: Valor negativo não permitido
+                  description: Exemplo de erro quando valor inicial é negativo
+                  value:
+                    timestamp: 2026-05-25T19:00:00
+                    status: 400
+                    error: Bad Request
+                    message: Validation failed
+                    path: /api/simulacoes
+                    errors:
+                    - O valor inicial deve ser maior que zero
+                Prazo Inválido:
+                  summary: Prazo fora dos limites
+                  description: Exemplo de erro quando prazo excede 360 meses
+                  value:
+                    timestamp: 2026-05-25T19:00:00
+                    status: 400
+                    error: Bad Request
+                    message: Validation failed
+                    path: /api/simulacoes
+                    errors:
+                    - O prazo não pode ser superior a 360 meses
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "500":
+          description: Erro interno do servidor
+          content:
+            application/json:
+              examples:
+                Erro Interno:
+                  summary: Erro inesperado no servidor
+                  value:
+                    timestamp: 2026-05-25T19:00:00
+                    status: 500
+                    error: Internal Server Error
+                    message: Ocorreu um erro inesperado. Tente novamente mais tarde.
+                    path: /api/simulacoes
+                    errors: []
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+  /api/simulacoes/{id}:
+    get:
+      summary: Buscar simulação por ID
+      description: |
+        Retorna uma simulação existente com todos os seus detalhes:
+        - Dados de entrada (valor, taxa, prazo)
+        - Valores calculados (total final e juros)
+        - Memória de cálculo completa mês a mês
+
+        Útil para recuperar simulações anteriores e analisar a evolução do financiamento.
+      tags:
+      - Simulações
+      parameters:
+      - description: Identificador único da simulação no banco de dados
+        example: 1
+        required: true
+        schema:
+          minimum: 1
+          format: int64
+          type: integer
+        name: id
+        in: path
+      responses:
+        "200":
+          description: Simulação encontrada
+          content:
+            application/json:
+              examples:
+                Simulação Encontrada:
+                  summary: Exemplo de simulação recuperada
+                  description: Resposta completa com todos os dados da simulação
+                  value:
+                    id: 1
+                    valorInicial: 1000.0
+                    taxaJurosMensal: 1.5
+                    prazoMeses: 12
+                    valorTotalFinal: 1195.63
+                    valorTotalJuros: 195.63
+                    memoriaCalculos:
+                    - mes: 1
+                      saldoInicial: 1000.0
+                      juro: 15.0
+                      saldoFinal: 1015.0
+                    - mes: 2
+                      saldoInicial: 1015.0
+                      juro: 15.23
+                      saldoFinal: 1030.23
+                    - mes: 12
+                      saldoInicial: 1177.96
+                      juro: 17.67
+                      saldoFinal: 1195.63
+              schema:
+                $ref: "#/components/schemas/SimulacaoResponseDTO"
+        "404":
+          description: Simulação não encontrada
+          content:
+            application/json:
+              examples:
+                Simulação Não Encontrada:
+                  summary: ID inexistente no banco de dados
+                  description: Erro retornado quando a simulação não existe
+                  value:
+                    timestamp: 2026-05-25T19:00:00
+                    status: 404
+                    error: Not Found
+                    message: Simulação com ID 999 não encontrada
+                    path: /api/simulacoes/999
+                    errors: []
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "500":
+          description: Erro interno do servidor
+          content:
+            application/json:
+              examples:
+                Erro Interno:
+                  summary: Erro inesperado no servidor
+                  value:
+                    timestamp: 2026-05-25T19:00:00
+                    status: 500
+                    error: Internal Server Error
+                    message: Ocorreu um erro inesperado. Tente novamente mais tarde.
+                    path: /api/simulacoes/999
+                    errors: []
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
