@@ -40,8 +40,6 @@ mvn quarkus:dev
 
 **🌐 Acesse:** http://localhost:8080
 
-> **⚡ Nota:** Os testes **NÃO** são executados automaticamente no modo dev. Para executar os testes, use o comando específico abaixo.
-
 #### ⏱️ Tempo de Inicialização
 - **Modo dev (sem testes):** ~15-20 segundos
   - Compilação de 23 arquivos Java
@@ -54,6 +52,9 @@ mvn quarkus:dev
   - 🗄️ Banco H2 já criado
 
 ### 🧪 Executar testes separadamente
+
+> **⚡ Nota:** Os testes **NÃO** são executados automaticamente no modo dev. Para executar os testes, use os comandos abaixo.
+
 Para rodar os testes com cobertura JaCoCo, use:
 ```bash
 mvn clean test
@@ -71,6 +72,8 @@ mvn test -Pfast-test
 ## 🎯 Especificações MicroProfile Implementadas
 
 A aplicação implementa as principais especificações do **Eclipse MicroProfile** para observabilidade, configuração e resiliência:
+
+> **📝 Nota de Segurança:** Esta aplicação **não utiliza JWT/autenticação** para facilitar os testes e avaliação. Em ambiente de produção, recomenda-se implementar MicroProfile JWT (JSON Web Token) para autenticação e autorização.
 
 #### 📊 **MicroProfile Metrics** (Micrometer + Prometheus)
 - **@Counted**: Contador de simulações criadas e buscadas
@@ -144,10 +147,6 @@ A aplicação implementa as principais especificações do **Eclipse MicroProfil
 - **AssertJ**: 3.26.3 (Assertions fluentes)
 - **Jacoco**: 0.8.13 (Cobertura de código - suporte Java 25)
 
-### Frontend
-- **HTML5 + CSS3**: Interface web
-- **JavaScript (Vanilla)**: Interação com API
-
 ---
 
 ## ⚠️ IMPORTANTE: Execução 100% Nativa (SEM Docker)
@@ -195,6 +194,8 @@ O projeto segue uma arquitetura em camadas bem definida:
 
 ```
 br.com.david.desafio/
+├── config/                 # Configurações da aplicação
+│   └── OpenAPIConfig       # Configuração OpenAPI/Swagger
 ├── dto/                    # Data Transfer Objects
 │   ├── SimulacaoRequestDTO
 │   ├── SimulacaoResponseDTO
@@ -203,22 +204,52 @@ br.com.david.desafio/
 ├── entity/                 # Entidades JPA
 │   ├── Simulacao
 │   └── MemoriaCalculo
-├── repository/             # Camada de persistência
+├── repository/             # Camada de persistência (Panache)
 │   └── SimulacaoRepository
 ├── service/                # Lógica de negócio
-│   └── SimulacaoService
+│   ├── ISimulacaoService   # Interface do serviço
+│   └── SimulacaoService    # Implementação
+├── strategy/               # Strategy Pattern (cálculos)
+│   ├── ICalculoJurosStrategy
+│   ├── JurosCompostosStrategy
+│   └── JurosSimplesStrategy
+├── factory/                # Factory Pattern
+│   └── SimulacaoFactory    # Criação de simulações
 ├── health/                 # Health Checks MicroProfile
-│   └── SimuladorHealthCheck (Liveness + Readiness)
-├── exception/              # Exceções customizadas
-│   └── SimulacaoNotFoundException
+│   └── SimuladorHealthCheck (Liveness + Readiness + Database)
+├── exception/              # Exceções e tratamento
+│   ├── SimulacaoNotFoundException
+│   └── mapper/             # Exception Mappers
+│       ├── ConstraintViolationExceptionMapper
+│       ├── IllegalArgumentExceptionMapper
+│       ├── SimulacaoNotFoundExceptionMapper
+│       └── GenericExceptionMapper
 └── SimuladorFinanciamentosResource  # Controlador REST (@Metrics, @FaultTolerance)
+
+test/br.com.david.desafio/  # Estrutura de testes (99 testes, 93% cobertura)
+├── builder/                # Builders para testes
+├── exception/mapper/       # Testes dos exception mappers
+├── factory/                # Testes da factory
+├── health/                 # Testes dos health checks
+├── repository/             # Testes dos repositórios
+├── service/                # Testes dos serviços
+└── strategy/               # Testes das estratégias de cálculo
 ```
+
+### Padrões de Projeto Implementados
+
+- **Strategy Pattern**: Diferentes estratégias de cálculo de juros (simples/compostos)
+- **Factory Pattern**: Criação centralizada de objetos Simulacao
+- **Builder Pattern**: Construção fluente de DTOs nos testes
+- **Repository Pattern**: Abstração da camada de persistência com Panache
+- **Exception Mappers**: Tratamento centralizado de exceções
 
 ### Anotações MicroProfile nos Componentes
 
 - **SimuladorFinanciamentosResource**: `@Counted`, `@Timed` (métricas)
 - **SimulacaoService**: `@Timeout`, `@Retry`, `@ConfigProperty` (resiliência e config)
 - **SimuladorHealthCheck**: `@Liveness`, `@Readiness` (health checks)
+- **Exception Mappers**: `@Provider` (tratamento global de exceções)
 
 ---
 
@@ -239,13 +270,7 @@ mvn -version
 
 ---
 
-## 📦 Instalação e Execução
-
-**Removida - Ver seção "⚡ Quick Start" no início do documento**
-
----
-
-## 🔌 Endpoints
+##  Endpoints
 
 ### API de Negócio
 - **POST** `/api/simulacoes` - Cria uma nova simulação
@@ -527,6 +552,7 @@ Requisições inválidas retornam **HTTP 400 Bad Request** com detalhes do erro.
 ```
 src/test/java/
 └── br/com/david/desafio/
+    ├── SimuladorFinanciamentosResourceTest.java  # 24 testes de integração REST
     ├── service/
     │   └── SimulacaoServiceTest.java             # 16 testes de integração
     ├── repository/
@@ -543,7 +569,8 @@ src/test/java/
     │   └── SimuladorHealthCheckUnitTest.java     # 8 testes unitários
     ├── builder/
     │   └── SimulacaoResponseBuilderTest.java     # 3 testes
-    └── SimuladorFinanciamentosResourceTest.java  # 24 testes de integração REST
+    └── exception/
+        └── mapper/                                # Exception mappers (cobertura via integração)
 ```
 
 ### Cobertura de Testes
@@ -738,28 +765,75 @@ mvn clean test
 
 ```
 simulador-financiamentos/
+├── .mvn/                          # Maven Wrapper
+├── .vscode/                       # Configurações do VS Code
 ├── data/                          # Banco de dados H2 (gerado automaticamente)
+│   └── simulador-db.mv.db
 ├── src/
 │   ├── main/
-│   │   ├── docker/               # Dockerfiles (não utilizados neste projeto)
-│   │   ├── java/                 # Código-fonte
-│   │   │   └── br/com/david/desafio/
-│   │   │       ├── dto/
-│   │   │       ├── entity/
-│   │   │       ├── exception/
-│   │   │       ├── repository/
-│   │   │       ├── service/
-│   │   │       └── SimuladorFinanciamentosResource.java
+│   │   ├── java/br/com/david/desafio/
+│   │   │   ├── config/           # Configurações (OpenAPI)
+│   │   │   │   └── OpenAPIConfig.java
+│   │   │   ├── dto/              # Data Transfer Objects
+│   │   │   │   ├── SimulacaoRequestDTO.java
+│   │   │   │   ├── SimulacaoResponseDTO.java
+│   │   │   │   ├── MemoriaCalculoDTO.java
+│   │   │   │   └── ErrorResponseDTO.java
+│   │   │   ├── entity/           # Entidades JPA
+│   │   │   │   ├── Simulacao.java
+│   │   │   │   └── MemoriaCalculo.java
+│   │   │   ├── exception/        # Exceções e mappers
+│   │   │   │   ├── SimulacaoNotFoundException.java
+│   │   │   │   └── mapper/
+│   │   │   │       ├── ConstraintViolationExceptionMapper.java
+│   │   │   │       ├── IllegalArgumentExceptionMapper.java
+│   │   │   │       ├── SimulacaoNotFoundExceptionMapper.java
+│   │   │   │       └── GenericExceptionMapper.java
+│   │   │   ├── factory/          # Factory Pattern
+│   │   │   │   └── SimulacaoFactory.java
+│   │   │   ├── health/           # Health Checks
+│   │   │   │   └── SimuladorHealthCheck.java
+│   │   │   ├── repository/       # Repositórios Panache
+│   │   │   │   └── SimulacaoRepository.java
+│   │   │   ├── service/          # Lógica de negócio
+│   │   │   │   ├── ISimulacaoService.java
+│   │   │   │   └── SimulacaoService.java
+│   │   │   ├── strategy/         # Strategy Pattern (cálculos)
+│   │   │   │   ├── ICalculoJurosStrategy.java
+│   │   │   │   ├── JurosCompostosStrategy.java
+│   │   │   │   └── JurosSimplesStrategy.java
+│   │   │   └── SimuladorFinanciamentosResource.java
 │   │   └── resources/
-│   │       └── application.properties
+│   │       ├── application.properties
+│   │       └── META-INF/
+│   │           └── resources/    # Vazio (sem frontend)
 │   └── test/
-│       └── java/                 # Testes unitários e de integração
-├── target/
-│   └── site/jacoco/              # Relatório de cobertura (após mvn test)
-├── mvnw                          # Maven Wrapper (Linux/Mac)
-├── mvnw.cmd                      # Maven Wrapper (Windows)
-├── pom.xml                       # Configuração do Maven
-└── README.md                     # Este arquivo
+│       ├── java/br/com/david/desafio/  # 99 testes (93% cobertura)
+│       │   ├── builder/
+│       │   ├── exception/mapper/
+│       │   ├── factory/
+│       │   ├── health/
+│       │   ├── repository/
+│       │   ├── service/
+│       │   ├── strategy/
+│       │   └── SimuladorFinanciamentosResourceTest.java
+│       └── resources/
+├── target/                        # Build output (gerado)
+│   ├── classes/                   # Classes compiladas
+│   ├── test-classes/              # Testes compilados
+│   ├── site/jacoco/               # Relatório JaCoCo (93%)
+│   └── surefire-reports/          # Relatórios de testes
+├── CONFORMIDADE.md                # Validação de conformidade
+├── PADROES-PROJETO.md             # Documentação de padrões
+├── TESTES-API.md                  # Documentação de testes
+├── TESTES-OTIMIZADOS.md           # Otimizações
+├── Simulador-Financiamentos.postman_collection.json  # 21 endpoints
+├── mvnw / mvnw.cmd                # Maven Wrapper
+├── pom.xml                        # Configuração Maven
+└── README.md                      # Este arquivo
+
+❌ SEM Docker - Execução 100% nativa
+❌ SEM frontend - API REST com Swagger UI
 ```
 
 ---
@@ -950,7 +1024,7 @@ Este projeto foi desenvolvido como parte de um desafio técnico para demonstraç
 
 ## 👨‍💻 Autor
 
-**David**  
+**David Couto Bitencourt**  
 Desenvolvedor Java | Especialista em Quarkus e APIs REST
 
 ---

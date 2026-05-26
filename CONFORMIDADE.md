@@ -39,8 +39,9 @@
 ### 3. Requisitos Não Funcionais
 
 #### 3.1 Cobertura de Testes >= 80%
-- ✅ **36+ testes** (20 unitários + 16 integração)
-- ✅ **Jacoco configurado** com mínimo de 80%
+- ✅ **99 testes** (unitários e integração)
+- ✅ **93% de cobertura** (meta: ≥80%)
+- ✅ **Jacoco configurado** com validação automática
 - ✅ **Relatório automático:** target/site/jacoco/index.html
 - ✅ **Build falha** se < 80% de cobertura
 
@@ -120,27 +121,56 @@ quarkus.hibernate-orm.database.generation=drop-and-create
 
 ```
 simulador-financiamentos/
-├── .mvn/                    # Maven Wrapper (para rodar sem Maven instalado)
+├── .mvn/                           # Maven Wrapper
 ├── src/
 │   ├── main/
-│   │   ├── java/           # Código-fonte (100% Java)
+│   │   ├── java/br/com/david/desafio/
+│   │   │   ├── config/             # Configurações (OpenAPI)
+│   │   │   ├── dto/                # Data Transfer Objects
+│   │   │   ├── entity/             # Entidades JPA
+│   │   │   ├── exception/          # Exceções customizadas e mappers
+│   │   │   ├── factory/            # Factory Pattern
+│   │   │   ├── health/             # Health checks customizados
+│   │   │   ├── repository/         # Repositórios Panache
+│   │   │   ├── service/            # Lógica de negócio
+│   │   │   ├── strategy/           # Strategy Pattern (juros)
+│   │   │   └── SimuladorFinanciamentosResource.java  # REST API
 │   │   └── resources/
-│   │       └── application.properties
-│   └── test/               # Testes (36+ testes)
-├── target/                 # Build output (gerado pelo Maven)
-│   └── site/jacoco/        # Relatório de cobertura
-├── data/                   # H2 Database (criado automaticamente)
+│   │       ├── application.properties
+│   │       └── META-INF/
+│   │           └── resources/      # Vazio (frontend removido)
+│   └── test/                       # 99 testes (93% cobertura)
+│       ├── java/br/com/david/desafio/
+│       │   ├── builder/            # Testes dos builders
+│       │   ├── exception/          # Testes dos exception mappers
+│       │   ├── factory/            # Testes da factory
+│       │   ├── health/             # Testes dos health checks
+│       │   ├── repository/         # Testes dos repositórios
+│       │   ├── service/            # Testes dos serviços
+│       │   └── strategy/           # Testes das estratégias
+│       └── resources/
+├── target/                         # Build output
+│   ├── classes/                    # Classes compiladas
+│   ├── test-classes/               # Testes compilados
+│   ├── site/jacoco/                # Relatório de cobertura (93%)
+│   └── surefire-reports/           # Relatórios de testes
+├── data/                           # H2 Database (file-based)
 │   └── simulador-db.mv.db
-├── mvnw                    # Maven Wrapper Unix
-├── mvnw.cmd                # Maven Wrapper Windows
-├── pom.xml                 # Configuração Maven
-└── README.md               # Documentação completa
+├── CONFORMIDADE.md                 # Este arquivo
+├── PADROES-PROJETO.md              # Documentação de padrões
+├── TESTES-API.md                   # Documentação de testes
+├── TESTES-OTIMIZADOS.md            # Otimizações de testes
+├── Simulador-Financiamentos.postman_collection.json  # Collection (21 endpoints)
+├── mvnw / mvnw.cmd                 # Maven Wrapper
+├── pom.xml                         # Configuração Maven (Quarkus 3.35.4)
+└── README.md                       # Documentação completa
 
 ❌ SEM Docker/
 ❌ SEM docker-compose.yml
 ❌ SEM Dockerfiles
 ❌ SEM .dockerignore
 ❌ SEM containers
+❌ SEM frontend (resources/META-INF/resources/ vazio)
 ```
 
 ---
@@ -179,7 +209,7 @@ O projeto está **100% CONFORME** todas as restrições e requisitos do desafio:
 2. ✅ **Java 25** - Versão correta
 3. ✅ **Quarkus** - Framework especificado
 4. ✅ **H2 Embutido** - File-based, sem containers
-5. ✅ **Testes >= 80%** - Validado pelo Jacoco
+5. ✅ **Testes: 93% de cobertura** - 99 testes, validado pelo Jacoco
 6. ✅ **Precisão Financeira** - BigDecimal em tudo
 7. ✅ **OpenAPI/Swagger** - Documentação automática
 8. ✅ **Clean Code** - Arquitetura em camadas
@@ -188,5 +218,5 @@ O projeto está **100% CONFORME** todas as restrições e requisitos do desafio:
 
 ---
 
-**Data de Verificação:** 20 de Maio de 2026  
+**Data de Verificação:** 25 de Maio de 2026  
 **Status Final:** ✅ **APROVADO EM TODOS OS CRITÉRIOS**
