@@ -9,7 +9,7 @@ API REST para simulação de financiamentos com cálculo de juros compostos. Des
 - Cálculo de juros compostos com BigDecimal
 - Memória de cálculo mês a mês
 - Persistência em H2 Database
-- Cobertura de testes: 93%
+- Cobertura de testes: 91%
 - Validação de entrada com Bean Validation
 
 ## Quick Start
@@ -64,7 +64,7 @@ O projeto utiliza arquitetura em camadas (Resource → Service → Repository) s
 - H2 Database (embedded)
 - Hibernate ORM with Panache
 - JUnit 5 + RestAssured
-- Jacoco (93% cobertura)
+- Jacoco (91% cobertura)
 
 ## Estrutura do Projeto
 
@@ -131,7 +131,7 @@ As tabelas são criadas automaticamente pelo Hibernate.
 
 ## Testes
 
-Total de testes: **99** | Cobertura: **93%**
+Total de testes: **99** | Cobertura: **91%**
 
 ```bash
 # Executar todos os testes
