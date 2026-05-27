@@ -17,17 +17,21 @@ API REST para simulação de financiamentos com cálculo de juros compostos. Des
 ```bash
 # Compilar
 mvn clean compile
+```
 
+```bash
 # Executar
 mvn quarkus:dev
-
-# Testes
-mvn clean test
 ```
 
 Acesse: http://localhost:8080
 
-Relatório de cobertura: `target/site/jacoco/index.html`
+```bash
+# Testes
+mvn clean test
+```
+
+**Relatório de cobertura de testes:** Após executar os testes, o relatório do Jacoco é gerado em `target/site/jacoco/index.html`
 
 ## Arquitetura e Padrões de Projeto
 
@@ -55,6 +59,7 @@ O projeto utiliza arquitetura em camadas (Resource → Service → Repository) s
 ## Tecnologias
 
 - Java 25
+- Maven 3.9.15
 - Quarkus 3.35.4  
 - H2 Database (embedded)
 - Hibernate ORM with Panache
